@@ -14,7 +14,7 @@ Crea un archivo `.env` en la carpeta principal (no se sube a GitHub):
 
 ```
 SUPABASE_URL=https://TU-PROYECTO.supabase.co
-SUPABASE_KEY=tu-clave-anon-de-supabase
+SUPABASE_KEY=tu-clave-secreta-de-supabase
 GEMINI_API_KEY=tu-clave-de-gemini
 ```
 

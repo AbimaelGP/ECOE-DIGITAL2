@@ -18,6 +18,14 @@ def obtener_lista_modulos():
         "Urgencias"
     ]
 
+def _celda(valor):
+    """Texto limpio de una celda de Excel (vacías → '', 380264.0 → '380264')."""
+    if valor is None or (isinstance(valor, float) and pd.isna(valor)):
+        return ""
+    if isinstance(valor, float) and valor.is_integer():
+        valor = int(valor)
+    return str(valor).strip()
+
 def crear_medico_supabase(identificador, nombre_completo, modulo_asignado, contraseña, creado_por):
     if not supabase: return False, "Supabase no conectado"
     p_hash = hashlib.sha256(contraseña.encode()).hexdigest()
@@ -184,7 +192,7 @@ def mostrar():
         
         if archivo_excel_med:
             try:
-                df_import_med = pd.read_excel(archivo_excel_med)
+                df_import_med = pd.read_excel(archivo_excel_med, dtype=str)
                 st.write("Vista previa de los datos a importar:")
                 st.dataframe(df_import_med.head(), use_container_width=True)
                 
@@ -192,10 +200,12 @@ def mostrar():
                     creado_por = st.session_state.get('identificador', 'admin')
                     exitos, errores = 0, 0
                     for _, row in df_import_med.iterrows():
-                        identificador = str(row.get('identificador', ''))
-                        nombre = row.get('nombre_completo', '')
-                        modulo = row.get('modulo_asignado', '')
-                        contraseña = str(row.get('contraseña', ''))
+                        identificador = _celda(row.get('identificador'))
+                        nombre = _celda(row.get('nombre_completo'))
+                        modulo = _celda(row.get('modulo_asignado'))
+                        contraseña = _celda(row.get('contraseña'))
+                        if not (identificador or nombre or modulo or contraseña):
+                            continue  # fila vacía
                         
                         if identificador and nombre and modulo and contraseña:
                             exito, _ = crear_medico_supabase(identificador, nombre, modulo, contraseña, creado_por)

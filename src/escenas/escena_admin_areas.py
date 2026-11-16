@@ -261,6 +261,14 @@ def mostrar_formulario_circuito(circuito=None, modo="crear"):
 
 def generar_clave_acceso(): return ''.join(str(random.randint(0, 9)) for _ in range(6))
 
+def _celda(valor):
+    """Texto limpio de una celda de Excel (vacías → '', 380264.0 → '380264')."""
+    if valor is None or (isinstance(valor, float) and pd.isna(valor)):
+        return ""
+    if isinstance(valor, float) and valor.is_integer():
+        valor = int(valor)
+    return str(valor).strip()
+
 def crear_estudiante_supabase(matricula, nombre_completo, contraseña, creado_por):
     if not supabase: return False, "Supabase no conectado", None
     password_hash = hashlib.sha256(contraseña.encode()).hexdigest()
@@ -428,16 +436,18 @@ def mostrar():
         
         if archivo_excel:
             try:
-                df_import = pd.read_excel(archivo_excel)
+                df_import = pd.read_excel(archivo_excel, dtype=str)
                 st.write("Vista previa de los datos a importar:")
                 st.dataframe(df_import.head(), use_container_width=True)
                 if st.button("Confirmar Importación", key="btn_confirmar_importacion"):
                     creado_por = st.session_state.get('identificador', 'admin')
                     exitos, errores = 0, 0
                     for _, row in df_import.iterrows():
-                        matricula = str(row.get('matricula', ''))
-                        nombre = row.get('nombre', '')
-                        contraseña = str(row.get('contraseña', ''))
+                        matricula = _celda(row.get('matricula', row.get('matrícula')))
+                        nombre = _celda(row.get('nombre'))
+                        contraseña = _celda(row.get('contraseña'))
+                        if not (matricula or nombre or contraseña):
+                            continue  # fila vacía
                         if matricula and nombre and contraseña:
                             exito, _, _ = crear_estudiante_supabase(matricula, nombre, contraseña, creado_por)
                             if exito: exitos += 1
