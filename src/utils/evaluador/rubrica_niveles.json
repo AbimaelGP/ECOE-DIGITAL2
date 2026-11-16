@@ -1,0 +1,366 @@
+{
+ "Comunicación|1. Supera los obstáculos comunicativos en los intercambios de conversación.": [
+  "No supera los obstáculos para comunicarse de forma clara con el paciente.",
+  "Supera pocos obstáculos en la comunicación con el paciente; no muestra claridad en la información que proporciona al paciente.",
+  "Supera algunos obstáculos en la comunicación con el paciente. Hay claridad en la información que proporciona sobre su padecimiento, pero no resuelve las dudas",
+  "Supera gran parte de los obstáculos comunicativos. Hay claridad en la información sobre el padecimiento y resuelve las dudas del paciente.",
+  "Supera todos los obstáculos de comunicación. Se comunica de forma clara y pertinente con el paciente, Asimismo aclara con fundamento clínico las dudas del paciente."
+ ],
+ "Comunicación|3. Manifiesta habilidades de lectura e interpretación de textos con un enfoque crítico.": [
+  "No manifiesta habilidades de lectura, ni tiene la capacidad de interpretación de textos.",
+  "Manifiesta habilidades de lectura pero no tiene la capacidad de interpretación de textos.",
+  "Manifiesta habilidades de lectura e interpretación de textos pero carece de un enfoque crítico.",
+  "Manifiesta habilidades de lectura e interpretación de textos con un enfoque crítico.",
+  "Manifiesta habilidades de lectura e interpretación de textos con un enfoque crítico y emite una opinión sobre el texto."
+ ],
+ "Comunicación|8. Emplea herramientas analíticas en la interpretación de resultados de investigación y construcción de alternativas.": [
+  "No emplea herramientas analíticas en la interpretación de resultados de investigación.",
+  "Emplea ciertas herramientas analíticas en la interpretación de resultados, no es claro y da muchas vueltas a una misma idea.",
+  "Emplea herramientas analíticas en la interpretación de resultados con ideas no muy claras de la información que quiere dar.",
+  "Emplea herramientas analíticas en la interpretación de resultados y sintetiza la información que le proporciona a la paciente, pero no queda claro el mensaje que le quiere dar.",
+  "Emplea herramientas analíticas en la interpretación de resultados y las utiliza para sintetizar la información, que le permiten tomar decisiones acertadas que le proporciona al paciente con precisión y claridad, ."
+ ],
+ "Comunicación|10. Interactúa en medios convencionales y virtuales aplicando diversas estrategias de comunicación.": [
+  "No interactúa con medios convencionales y virtuales",
+  "Interactúa parcialmente con pacientes a través de medios convencionales aplicando algunas estrategias de comunicación.",
+  "Interactúa parcialmente con pacientes a través de medios convencionales y virtuales de forma asincrónica aplicando ciertas estrategias de comunicación.",
+  "Interactúa con pacientes a través de medios convencionales y virtuales con diversas estrategias de comunicación sincrónica y asincrónica.",
+  "Interactúa hábilmente con pacientes a través de medios convencionales, virtuales e Inteligencia Artificial aplicando diversas estrategias de comunicación de forma sincrónica y asincrónica."
+ ],
+ "Emprendimiento|1. Genera y desarrolla proyectos de bienes y servicios que contribuyan a la solución de problemas.": [
+  "No genera ni desarrolla proyectos de bienes y servicios.",
+  "Genera parcialmente proyectos de bienes y servicios Identifica algunos problemas del contexto, sin contribuir a la solución.",
+  "Genera proyectos Identificando problemas del contexto pero no propone soluciones,",
+  "Genera proyectos de bienes y servicios identificando problemas del contexto que contribuyen parcialmente a la solución de problemas del contexto.",
+  "Genera proyectos de bienes y servicios que contribuyen a la solución de problemas del contexto considerando los recursos disponibles y las necesidades de la comunidado."
+ ],
+ "Emprendimiento|2. Demuestra habilidades de creatividad e innovación al desarrollar estrategias.": [
+  "No demuestra habilidades de creatividad e innovación y se limita a aplicar soluciones convencionales o memorizadas sin considerar la individualidad del paciente.",
+  "Demuestra habilidades limitadas en la búsqueda de estrategias creativas pero necesita orientación o ejemplos.",
+  "Demuestra ciertas habilidades para proponer soluciones creativas a problemas clínicos comunes.",
+  "Demuestra de manera general habilidades de creatividad en el desarrollo de estrategias para mejorar la calidad de vida de los pacientes, aplica la innovación de manera responsable y ética.",
+  "Demuestra un alto grado de habilidades para la creatividad e innovación en el desarrollo de estrategias que impactan positivamente en la calidad de vida de la comunidad a la que pertenece el caso clínico planteado."
+ ],
+ "Emprendimiento|5. Muestra una actitud proactiva y positiva ante los retos y oportunidades.": [
+  "No muestra una actitud proactiva ni positiva ante los retos y oportunidades, mostrando una falta de iniciativa y una actitud negativa.",
+  "Muestra cierta actitud proactiva y positiva de forma inconsistente ante los retos y necesita apoyo para asumir riesgos y desafíos de manera efectiva.",
+  "Muestra actitud proactiva y positiva para la mayoría de los retos, asume riesgos con seguridad aunque puede necesitar apoyo en situaciones complicadas.",
+  "Muestra actitud proactiva y positiva de manera constante, asume riesgos y desafíos con seguridad y determinación y se adapta a las situaciones complejas.",
+  "Muestra siempre una actitud proactiva y positiva para asumir los riesgos y desafíos, presenta soluciones para enfrentar las situaciones que se le presentan."
+ ],
+ "Sociocultural|3. Interactúa con diferentes grupos sociales respetando su dignidad y los derechos de las personas.": [
+  "No interactúa con diferentes grupos sociales ni respeta la dignidad y derechos de las personas.",
+  "Interactúa parcialmente con diferentes grupos sociales, pero requiere apoyo.",
+  "Logra interactuar con diferentes grupos sociales, requiriendo ayuda en situaciones complejas.",
+  "Interactúa con diferentes grupos sociales de forma eficiente, respetando su dignidad y los derechos de las personas.",
+  "Interactúa notablemente con diferentes grupos sociales respetando su dignidad y los derechos de las personas, manifiesta una actitud de servicio a la comunidad."
+ ],
+ "Sociocultural|5. Manifiesta interés por la diversidad cultural y étnica reconociendo la interculturalidad.": [
+  "No manifiesta interés por la diversidad cultural y étnica.",
+  "No manifiesta interés por la diversidad cultural y étnica. Pero reconoce la existencia de la diversidad cultural y étnica, de manera superficial.",
+  "Manifiesta cierto interés por la diversidad cultural y étnica, con respeto básico hacia el paciente sin explorar sus creencias o valores.",
+  "Manifiesta interés por la diversidad cultural y étnica, integra la perspectiva del paciente en el plan de atención.",
+  "Manifiesta interés por la diversidad cultural y étnica, integra la perspectiva del paciente en el plan de atención, buscando soluciones que sean culturalmente apropiadas y que respeten la autonomía del paciente."
+ ],
+ "Solución de Problemas|2. Analiza críticamente los diferentes componentes de un problema y sus interrelaciones.": [
+  "No analiza los diferentes componentes del problema del paciente y sus interrelaciones.",
+  "Analiza parcialmente los diferentes componentes del problema del paciente y sus interrelaciones sin considerar el contexto local, nacional e internacional.",
+  "Analiza los algunos componentes del problema del paciente y sus interrelaciones considerando el contexto local, nacional e internacional.",
+  "Analiza los diferentes componentes del problema del paciente y sus interrelaciones considerando el contexto local, nacional e internacional y propone las posibles soluciones.",
+  "Analiza críticamente los diferentes componentes del problema del paciente y sus interrelaciones considerando el contexto local, nacional e internacional y conoce y emplea las mejores soluciones disponibles."
+ ],
+ "Solución de Problemas|4. Identifica soluciones con base en diferentes fuentes de información confiables.": [
+  "No logra identificar soluciones y lo hace basándose sin recurrir a fuentes confiables.",
+  "Identifica parcialmente soluciones consultando fuentes sin asegurarse de su confiabilidad .",
+  "Identifica soluciones consultando varias fuentes y reconoce la importancia de consultar fuentes internacionales.",
+  "Identifica soluciones consultando fuentes confiables como revistas científicas nacionales e internacionales indexadas o bases de datos especializadas.",
+  "Identifica soluciones consultando fuentes confiables como revistas científicas indexadas o bases de datos especializadas. Integra información de diversas fuentes internacionales incluso de varios idiomas."
+ ],
+ "Solución de Problemas|6. Utiliza y promueve el empleo de diferentes métodos y/o estrategias de solución.": [
+  "No utiliza estrategias que permitan establecer alternativas de solución de problemas mediante procesos de colaboración.",
+  "Utiliza al menos un método para la solución de problemas mediante procesos de colaboración.",
+  "Utiliza métodos que permiten establecer alternativas de solución de problemas mediante procesos de colaboración.",
+  "Utiliza y promueve el empleo de diferentes métodos y/o estrategias que permitan establecer alternativas de solución de problemas mediante procesos de colaboración.",
+  "Utiliza, promueve y desarrolla el empleo de diferentes métodos y/o estrategias que permitan establecer alternativas de solución de problemas liderando los procesos de colaboración."
+ ],
+ "Solución de Problemas|7. Propone soluciones creativas e innovadoras asumiendo una actitud responsable.": [
+  "No propone soluciones creativas.",
+  "Propone con dificultad alguna solución creativa, pero sin asumir una actitud responsable.",
+  "Propone algunas soluciones creativas y asume cierta actitud responsable.",
+  "Propone soluciones creativas e innovadoras y asume una actitud responsable.",
+  "Propone siempre soluciones creativas e innovadoras asumiendo una actitud responsable."
+ ],
+ "Trabajo en Equipo y Liderazgo|1. Identifica habilidades pertinentes para el emprendimiento considerando las metas.": [
+  "No identifica qué habilidad puede ser pertinentes para el emprendimiento.",
+  "Identifica alguna habilidad, aunque no del todo pertinente para el emprendimiento sin considerar las metas personales y de grupo.",
+  "Identifica de forma general ciertas habilidades para el emprendimiento, pero no considera las metas personales y de grupo.",
+  "Identifica habilidades pertinentes para el emprendimiento considerando las metas personales.",
+  "Identifica claramente habilidades pertinentes para el emprendimiento considerando las metas personales y de grupo."
+ ],
+ "Trabajo en Equipo y Liderazgo|3. Interactúa con diversas personas privilegiando el diálogo en la solución de conflictos.": [
+  "Evita la interacción con personas diferentes a él o ella, mostrando incomodidad o desinterés.",
+  "Interactúa con personas, pero tiene dificultades para aceptar las diferencias de opinión y tiende a imponer su punto de vista.",
+  "Interactúa con diversas personas, pero de manera superficial, manteniendo una actitud pasiva o defensiva. Intenta dialogar para solucionar conflictos, pero con limitaciones.",
+  "Interactúa con diversas personas de manera respetuosa y abierta, mostrando interés por comprender sus perspectivas. Utiliza el diálogo como herramienta principal para la solución de conflictos.",
+  "Interactúa de manera asertiva con personas diferentes, muestra empatía y comprensión hacia las perspectivas de los demás. Escucha activamente, expresa sus ideas con claridad y busca soluciones que beneficien a todas las partes involucradas."
+ ],
+ "Trabajo en Equipo y Liderazgo|6. Desarrolla una cultura de trabajo grupal hacia el logro de una meta común.": [
+  "No desarrolla una cultura de trabajo grupal hacia el logro de una meta común.",
+  "Muestra un bajo interés por desarrollar una cultura de trabajo grupal hacia el logro de una meta común.",
+  "Desarrolla parcialmente una cultura de trabajo grupal, hacia el logro de una meta común.",
+  "Logra desarrollar una cultura de trabajo grupal hacia el logro de una meta común.",
+  "Desarrolla una cultura de trabajo grupal hacia el logro de una meta común y logra que los demás lo hagan también."
+ ],
+ "Trabajo en Equipo y Liderazgo|8. Demuestra respeto, tolerancia, responsabilidad y pluralidad en el trabajo grupal.": [
+  "No muestra respeto, tolerancia, responsabilidad, apertura en la confrontación y pluralidad en el trabajo grupal.",
+  "Muestra cierto respeto, pero no tolerancia, responsabilidad, apertura en la confrontación y pluralidad en el trabajo grupal.",
+  "Muestra respeto, tolerancia y responsabilidad, pero se le dificulta la apertura a la confrontación y pluralidad en el trabajo grupal.",
+  "Muestra respeto, tolerancia y responsabilidad, con ciertas dificultades apertura en la confrontación y pluralidad en le trabajo grupal",
+  "Muestra total respeto, tolerancia, responsabilidad, y apertura en la confrontación y pluralidad en el trabajo grupal."
+ ],
+ "Información Digital|1. Identifica las necesidades de información que contribuyen al logro de metas.": [
+  "No identifica las necesidades de información para lograr las metas.",
+  "Identifica algunas necesidades de información con dificultad para lograr las metas.",
+  "Identifica las necesidades de información relevante para lograr las metas, puede tener dificultades para identificarlas en situaciones complejas.",
+  "Identifica en gran medida las necesidades de información que contribuyen al logro de las metas académicas, personales, sociales, ocupacionales y educativas",
+  "Identifica toda la información relevante para lograr todas las metas."
+ ],
+ "Información Digital|2. Elige fuentes de información y las discrimina por su relevancia y confiabilidad.": [
+  "Elige cualquier fuente de información que encuentra sin considerar su origen, autoridad o actualidad, no discrimina entre información confiable y no confiable.",
+  "Elige fuentes de información aplicando criterios de selección limitados, como la facilidad de acceso o la popularidad de la fuente.",
+  "Elige fuentes de información confiables, como revistas científicas, libros de autores reconocidos, bases de datos especializadas y sitios web de instituciones académicas o gubernamentales.",
+  "Elige fuentes de información confiables, como revistas científicas, libros de autores reconocidos, bases de datos especializadas y sitios web de instituciones académicas o gubernamentales. Aplica criterios de selección como la relevancia, pertinencia y confiabilidad.",
+  "Elige fuentes de información confiables, como revistas científicas, libros de autores reconocidos, bases de datos especializadas y sitios web de instituciones académicas o gubernamentales. Aplica criterios de selección como a relevancia, la pertinencia, la confiabilidad, la autoridad, la actualidad y la objetividad."
+ ],
+ "Información Digital|3. Emplea recursos digitales y TAC para gestionar, localizar y clasificar información.": [
+  "No emplea los recursos TAC para gestionar la información ignorando los derechos de autor.",
+  "Emplea los recursos TAC pero con dificultad en la organización y tiene una comprensión superficial de los derechos de autor.",
+  "Emplea la mayoría de los recursos TAC de manera adecuada pero aun con dificultades, demuestra comprender los derechos de autor.",
+  "Emplea de manera eficiente los recursos TAC en diversas situaciones y demuestra conocimiento de los derechos de autor, pero los aplica con dificultad.",
+  "Emplea de manera eficiente los recursos TAC en diversas situaciones y demuestra un conocimiento sólido de los derechos de autor y los aplica correctamente."
+ ],
+ "Cultura en Salud|3. Determina, practica y promueve estilos de vida saludable.": [
+  "No practica ni promueve estilos de vida saludable.",
+  "Promueve de forma parcial sin poner en práctica estilos de vida saludables en los pacientes.",
+  "Práctica y promueve parcialmente algunos estilos de vida saludable en los pacientes.",
+  "Determina, práctica y promueve estilos de vida saludables, acorde a las necesidades de los pacientes.",
+  "Determina, práctica y promueve estilos de vida saludable, citando algunos ejemplos acordes a las necesidades de los pacientes, como parte del seguimiento a realizar."
+ ],
+ "Cultura en Salud|4. Promueve el mejoramiento de la calidad de vida humana atendiendo a indicadores.": [
+  "No promueve el mejoramiento de la calidad de vida humana.",
+  "Promueve ligeramente el mejoramiento de la calidad de vida humana sin tomar en cuenta los indicadores de bienestar.",
+  "Promueve el mejoramiento de la calidad de vida humana atendiendo ciertos indicadores de bienestar establecidos.",
+  "Promueve el mejoramiento de la calidad de vida humana atendiendo de manera general los indicadores de bienestar establecidos.",
+  "Promueve exitosamente el mejoramiento de la calidad de vida humana atendiendo con precisión los indicadores de bienestar establecidos."
+ ],
+ "Cultura en Salud|5. Demuestra una actitud de servicio y de participación comunitaria.": [
+  "No demuestra una actitud de servicio y de participación comunitaria.",
+  "Demuestra una actitud pasiva en las actividades comunitarias, reconoce su importancia pero se limita a seguir instrucciones o a cumplir con lo mínimo requerido,",
+  "Demuestra una actitud de servicio, se asegura de que el paciente o familiar comprenda las indicaciones médicas, utilizando un lenguaje claro y sencillo. Puede mencionar la existencia de grupos de apoyo o programas educativos para pacientes con diabetes, pero no proporciona información específica.",
+  "Demuestra una actitud de servicio, se asegura de que el paciente o familiar comprenda las indicaciones médicas, utilizando un lenguaje claro y sencillo. Muestra interés en el seguimiento del paciente para asegurarse de que está recibiendo el apoyo adecuado.",
+  "Demuestra una actitud de servicio, se asegura de que el paciente o familiar comprenda las indicaciones médicas, utilizando un lenguaje claro y sencillo. Muestra interés en el seguimiento del paciente para asegurarse de que está recibiendo el apoyo adecuado. Además promueve la participación activa del paciente y su familia en actividades comunitarias para el cuidado de la salud, empoderandose para tomar decisiones informadas."
+ ],
+ "Elementos Conceptuales Básicos|4. Explica la salud y la enfermedad como un continum de la vida humana.": [
+  "No explica la relación que existe entre la salud y la enfermedad.",
+  "Explica con dificultad que la salud y la enfermedad están relacionadas.",
+  "Explica la relación entre salud y enfermedad como un continuo, pero con algunas limitaciones en la comprensión de los factores que influyen en él.",
+  "Explica de manera adecuada la relación que existe entre la salud y la enfermedad y comprende múltiples factores relacionados entre sí.",
+  "Explica de una forma completa y clara la relación que existe entre la salud y la enfermedad analizando las situaciones complejas."
+ ],
+ "Elementos Conceptuales Básicos|5. Relaciona los elementos salud y enfermedad con la persona y su ambiente.": [
+  "No logra relacionar los elementos de salud con la persona y su ambiente.",
+  "Relaciona algunos de los elementos de salud con la persona y su ambiente.",
+  "Logra relacionar los elementos de salud, pero no toma en cuenta el impacto que tiene el ambiente sobre ellos.",
+  "Relaciona los elementos de salud identificando la patología y la influencia que tiene el medio ambiente en su manifestación.",
+  "Relaciona los elementos de salud identificando la patología y la influencia que tiene el medio ambiente sobre ella. Además, relaciona el riesgo de trabajo que existe en la profesión del paciente y da indicaciones para una mayor protección del paciente."
+ ],
+ "Elementos Conceptuales Básicos|7. Explica los principios básicos de la bioética relacionados con su desempeño profesional.": [
+  "No logra explicar los principios básicos de la bioética relacionados con su desempeño profesional.",
+  "Explica los principios básicos de la bioética, pero con una comprensión limitada de sus implicaciones.",
+  "Explica los principios básicos de la bioética y sus implicaciones en la práctica médica.",
+  "Explica de manera clara y concisa los principios bioéticos, reconociendo sus limitaciones y los desafíos que presentan en la práctica médica actual.",
+  "Explica de manera clara y concisa los principios bioéticos, reconociendo sus limitaciones y los desafíos que presentan en la práctica médica actual. Integra la bioética en la toma de decisiones clínicas y de gestión, promoviendo una cultura ética en el ámbito de la salud."
+ ],
+ "Prestación de Servicios de Salud|1. Se integra en el trabajo inter y multidisciplinario para la atención a la salud.": [
+  "No se integra en el trabajo inter o multidisciplinario, no busca la colaboración de otros profesionales. No reconoce la importancia del trabajo en equipo para la atención integral del paciente.",
+  "No se integra en el trabajo inter o multidisciplinario, reconoce la importancia del trabajo en equipo para la atención del paciente, pero necesita orientación o guía para referir a otro nivel.",
+  "Se integra parcialmente en el trabajo interdisciplinario, participa en discusiones con otros sustentantes, pero de manera pasiva, sin aportar ideas o sugerencias.",
+  "Se integra en el trabajo interdisciplinario, colabora activamente con otros sustentantes en la atención del paciente, compartiendo información, participando en la toma de decisiones y buscando soluciones conjuntas.",
+  "Se integra en el trabajo inter y multidisciplinario, colabora activamente con otros sustentantes en la atención del paciente, compartiendo información, participando en la toma de decisiones y buscando soluciones conjuntas. Reconoce la necesidad de contactar con otros profesionistas relevantes para el caso (p. ej. nutrición, fisioterapia)."
+ ],
+ "Prestación de Servicios de Salud|3. Desarrolla programas, proyectos y acciones educativas, preventivas y curativas.": [
+  "No logra desarrollar proyectos, programas y acciones educativas preventivas, curativas y de rehabilitación.",
+  "Logra desarrollar parcialmente proyectos, programas y acciones educativas preventivas, curativas y de rehabilitación, sin bases en la investigación de necesidades y problemas de salud.",
+  "Desarrolla de manera aceptable proyectos, programas y acciones educativas preventivas, curativas y de rehabilitación, pero sin tener bases en la investigación de necesidades y problemas de salud.",
+  "Desarrolla ampliamente proyectos, programas y acciones educativas preventivas, curativas y de rehabilitación, con bases en la investigación de necesidades y problemas de salud.",
+  "Desarrolla de forma eficiente proyectos, programas y acciones educativas preventivas, curativas y de rehabilitación, con bases en la investigación de necesidades y problemas de salud."
+ ],
+ "Prestación de Servicios de Salud|5. Realiza las acciones pertinentes para la solución de los problemas de salud.": [
+  "No realiza las acciones pertinentes para la solución del caso planteado: no llega a un diagnóstico preciso, prescribe un tratamiento inadecuado.",
+  "Realiza acciones básicas para la solución del caso planteado: Realiza un diagnóstico básico sin identificar complicaciones o diagnósticos diferenciales, no implementa un tratamiento adecuado.",
+  "Realiza acciones básicas para la solución del caso planteado: Realiza un diagnóstico básico sin identificar complicaciones o diagnósticos diferenciales, implementa un tratamiento estándar sin adaptarlo a las necesidades del paciente.",
+  "Realiza las acciones pertinentes para la solución del caso planteado: Realiza un diagnóstico preciso y oportuno, considera los diagnósticos diferenciales, Implementa un tratamiento eficaz y seguro.",
+  "Realiza las acciones pertinentes para la solución del caso planteado: Realiza un diagnóstico preciso y oportuno, considera los diagnósticos diferenciales, Implementa un tratamiento eficaz y seguro. Se anticipa a posibles complicaciones, coordina la atención con otros profesionales de la salud para brindar un abordaje integral."
+ ],
+ "Prestación de Servicios de Salud|7. Replantea los problemas y alternativas de solución.": [
+  "No replantea el problema ni considera nuevas perspectivas.",
+  "Se centra en una visión superficial del problema o se limita a aplicar soluciones convencionales preestablecidas, sin considerar alternativas de solución.",
+  "Replantea el problema y considera algunas alternativas de solución básicas, puede tener dificultades para evaluar sus ventajas y desventajas.",
+  "Replantea el problema y lo analiza en profundidad, genera alternativas de solución de manera crítica considerando sus ventajas, desventajas, riesgos y beneficios.",
+  "Replantea el problema desde diferentes perspectivas. Adapta las alternativas de solución al contexto específico del paciente, considerando sus características individuales, sus preferencias y sus recursos."
+ ],
+ "Salud Pública y Sistemas de Salud|1. Clasifica, ordena y explica los factores causales de los principales problemas de salud.": [
+  "No logra explicar correctamente los factores causales de la patología de su paciente.",
+  "Explica algunos de los factores causales de la patología de su paciente.",
+  "Explica correctamente los factores causales de la patología de su paciente.",
+  "Explica correctamente los factores causales de la patología de su paciente y promueve estilos de vida más saludables.",
+  "Explica correctamente los factores causales de la patología de su paciente, identifica el riesgo de trabajo que generó su situación y promueve propuestas para la prevención de la enfermedad."
+ ],
+ "Salud Pública y Sistemas de Salud|2. Promueve el mejoramiento de la calidad de vida humana.": [
+  "No promueve el mejoramiento de la calidad de vida humana",
+  "Promueve ligeramente el mejoramiento de la calidad de vida humana sin tomar en cuenta los indicadores de bienestar.",
+  "Promueve el mejoramiento de la calidad de vida humana atendiendo ciertos indicadores de bienestar establecidos.",
+  "Promueve el mejoramiento de la calidad de vida humana atendiendo de manera general los indicadores de bienestar establecidos.",
+  "Promueve exitosamente el mejoramiento de la calidad de vida humana atendiendo con precisión los indicadores de bienestar establecidos."
+ ],
+ "Salud Pública y Sistemas de Salud|3. Aplica actividades de protección específica para la Salud.": [
+  "Desconoce y no aplica las actividades de protección específicas de Salud.",
+  "Conoce las actividades relacionadas a la protección específica para la salud, pero no participa dentro de ellas.",
+  "Aplica algunas actividades de protección específica para la Salud.",
+  "Aplica actividades de protección específica para la Salud.",
+  "Aplica actividades de protección específica para la Salud de forma eficiente y responsable."
+ ],
+ "Salud Pública y Sistemas de Salud|4. Aplica y promueve estilos de vida saludable.": [
+  "No aplica ni promueve estilos de vida saludable. Muestra desconocimiento.",
+  "Aplica de manera limitada estilos de vida saludable",
+  "Promueve consejos básicos sobre estilos de vida saludable a los pacientes, pero sin profundizar en la motivación o el seguimiento.",
+  "Promueve y aplica activamente los estilos de vida saludable en sus pacientes, brindando información, motivación y herramientas para adoptarlos.",
+  "Aplica y promueve activamente los estilos de vida saludable en sus pacientes, brindando información, motivación y herramientas para adoptarlos. Adapta las recomendaciones sobre estilos de vida saludable al contexto específico de cada paciente, considerando sus necesidades, preferencias y recursos."
+ ],
+ "Salud Pública y Sistemas de Salud|5. Analiza e interpreta las características determinantes de los estilos de vida.": [
+  "Se le dificulta identificar las características que determinan los estilos de vida que intervienen en el proceso salud-enfermedad de una población, para realizar un diagnóstico de salud.",
+  "Identifica solo algunas de las características que determinan los estilos de vida; pero no menciona los factores de riesgo que intervienen en el proceso salud-enfermedad de una población, para realizar un diagnóstico de salud",
+  "Identifica las características determinantes de los estilos de vida y menciona algunos factores de riesgo que intervienen en el proceso salud-enfermedad de una población, para realizar un diagnóstico de salud",
+  "Describe las características determinantes de los estilos de vida y los factores de riesgo que intervienen en el proceso salud-enfermedad de una población, para realizar un diagnóstico de salud",
+  "Analiza y describe con fundamento las características determinantes de los estilos de vida y los factores de riesgo que intervienen en el proceso salud-enfermedad de una población, para realizar un diagnóstico de salud"
+ ],
+ "Salud Pública y Sistemas de Salud|6. Muestra una actitud de servicio y de participación comunitaria.": [
+  "No muestra una actitud de servicio y de participación comunitaria",
+  "Muestra una actitud pasiva en las actividades comunitarias, reconoce su importancia pero se limita a seguir instrucciones o a cumplir con lo mínimo requerido,",
+  "Muestra una actitud de servicio, se asegura de que el paciente o familiar comprenda las indicaciones médicas, utilizando un lenguaje claro y sencillo. Puede mencionar la existencia de grupos de apoyo o programas educativos para pacientes con diabetes, pero no proporciona información específica.",
+  "Muestra una actitud de servicio, se asegura de que el paciente o familiar comprenda las indicaciones médicas, utilizando un lenguaje claro y sencillo. Muestra interés en el seguimiento del paciente para asegurarse de que está recibiendo el apoyo adecuado.",
+  "Muestra una actitud de servicio, se asegura de que el paciente o familiar comprenda las indicaciones médicas, utilizando un lenguaje claro y sencillo. Muestra interés en el seguimiento del paciente para asegurarse de que está recibiendo el apoyo adecuado. Además promueve la participación activa del paciente y su familia en actividades comunitarias para el cuidado de la salud, empoderándolos para tomar decisiones informadas."
+ ],
+ "Diagnóstico y Manejo de Patologías|1. Aplica el interrogatorio estructurado al paciente sobre su estado de salud.": [
+  "No aplica interrogatorio Solo analiza el caso",
+  "Aplica el interrogatorio, pero carente de organización y coherencia sobre el estado de salud del paciente.",
+  "Aplica el interrogatorio organizado y coherente con el estado de salud del paciente.",
+  "Aplica el interrogatorio organizado y coherente con el estado de salud del paciente, estructurando una argumentación sobre el mismo.",
+  "Aplica el interrogatorio organizado y coherente con el estado de salud del paciente, argumentando y propiciando un mejor entendimiento de la patología."
+ ],
+ "Diagnóstico y Manejo de Patologías|2. Examina al paciente en forma completa y sistemática.": [
+  "Examina parcialmente al paciente",
+  "Examina al paciente en forma completa y sistemática, pero, con desorden. Respeta su dignidad, integridad y pudor.",
+  "Examina con la exploración obstétrica abdominal y/o pélvica al paciente en forma completa, sistemática y ordenadamente, respetando su dignidad, integridad y pudor.",
+  "Examina al paciente de forma completa, sistemática y ordenada, respetando su dignidad, integridad y pudor argumentando y fundamentando la fisio-patología de cada signo y/o síntoma.",
+  "Examina al paciente de forma completa, sistemática y ordenada, respetando su dignidad, integridad y pudor proponiendo estrategias de soporte para-clínico adecuado a cada dato clínico. respetando la dignidad e integridad del paciente."
+ ],
+ "Diagnóstico y Manejo de Patologías|3. Muestra el tipo de seguimiento que se realizará al paciente.": [
+  "No logra identificar la necesidad de dar seguimiento al paciente.",
+  "Identifica que el paciente requiere de seguimiento, pero duda respecto al tipo de seguimiento necesario acorde a la patología identificada.",
+  "Identifica que el paciente requiere de seguimiento y propone el tipo de seguimiento acorde a la patología identificada.",
+  "Identifica que el paciente requiere de seguimiento, propone el tipo acorde a la patología identificada, así como la importancia de evaluar dicho seguimiento.",
+  "Identifica que el paciente requiere de seguimiento, propone el tipo acorde a la patología identificada, así como la importancia de evaluar dicho seguimiento y la identificación de situaciones extraordinarias que pudieran ocurrir durante el mismo."
+ ],
+ "Diagnóstico y Manejo de Patologías|4. Clasifica la patología de forma general y/o específica.": [
+  "No logra clasificar la patología en forma general.",
+  "Clasifica con dificultad la patología en forma general.",
+  "Clasifica la patología en forma general.",
+  "Clasifica la patología en forma general y/o específica.",
+  "Clasifica la patología en forma general y/o específica con evidencia tangible y objetiva."
+ ],
+ "Diagnóstico y Manejo de Patologías|5. Aplica tratamiento o reclasifica y deriva a otro nivel de competencia.": [
+  "Propone un tratamiento inadecuado.",
+  "Aplica un tratamiento, pero duda de si es el adecuado y no considera reclasificar y derivarlo a otro nivel de competencia.",
+  "Aplica un tratamiento adecuado, y sabe reclasificar y derivar al paciente a otro nivel de competencia.",
+  "Aplica un tratamiento adecuado, y sabe reclasificar y derivar al paciente a otro nivel de competencia, explicando cómo preparar al paciente para el envío.",
+  "Aplica un tratamiento adecuado, y sabe reclasificar y derivar al paciente a otro nivel de competencia, explicando cómo preparar al paciente para el envío, proponiendo estrategias para identificar posibles situaciones extraordinarias."
+ ],
+ "Diagnóstico y Manejo de Patologías|6. Informa al paciente y/o familiares sobre el padecimiento.": [
+  "No Informa al paciente y/o familiares sobre el padecimiento parcialmente por la dificultad que presenta para darse a entender de manera adecuada, aunque es amable y respetuoso.",
+  "Informa al paciente y/o familiares sobre el padecimiento parcialmente por la dificultad que presenta para darse a entender de manera adecuada, aunque es amable y respetuoso.",
+  "Informa al paciente y/o familiares sobre el padecimiento en forma completa, clara, amable, respetuosa y satisfactoria.",
+  "Informa al paciente y/o familiares sobre el padecimiento en forma completa, clara, amable, respetuosa y a satisfacción, jerarquizando la importancia de la información proporcionada.",
+  "Informa al paciente y/o familiares sobre el padecimiento en forma completa, clara, amable, respetuosa y satisfactoria, jerarquizando su importancia y advirtiendo sobre posibles situaciones extraordinarias."
+ ],
+ "Diagnóstico y Manejo de Patologías|10. Reconoce y valora la necesidad de los distintos estudios auxiliares de diagnóstico.": [
+  "No identifica la necesidad de tomar en cuenta los distintos estudios auxiliares de diagnóstico que apoyan sus conclusiones iniciales y finales.",
+  "Reconoce sin precisar que puede utilizar algunos estudios auxiliares de diagnóstico para apoyarse en las conclusiones iniciales y finales.",
+  "Reconoce la necesidad de utilizar algunos estudios auxiliares de diagnóstico que apoyan sus conclusiones iniciales y finales.",
+  "Reconoce la necesidad de aplicar distintos estudios auxiliares de diagnóstico para apoyarse en sus conclusiones iniciales y finales.",
+  "Reconoce y valora la necesidad de utilizar distintos estudios auxiliares de diagnóstico como apoyo a sus conclusiones iniciales y finales."
+ ],
+ "Diagnóstico y Manejo de Patologías|11. Interpreta la información proporcionada por la evaluación clínica.": [
+  "No logra interpretar la información proporcionada por la evaluación clínica y en su caso los auxiliares de diagnóstico.",
+  "Interpreta con dificultad la información proporcionada por la evaluación clínica.",
+  "Interpreta la información proporcionada por la evaluación clínica.",
+  "Interpreta la información proporcionada por la evaluación clínica y en su caso los auxiliares de diagnóstico.",
+  "Interpreta la información proporcionada por la evaluación clínica y en su caso los auxiliares de diagnóstico y argumenta sobre ello."
+ ],
+ "Promoción y Prevención de la Salud|1. Planea programas de promoción y prevención de la salud.": [
+  "Desconoce cuáles son las enfermedades más recurrentes.",
+  "No planea programas de promoción y prevención de la salud. Solo conoce cuales son las enfermedades más recurrentes.",
+  "Promueve la prevención de la salud considerando a las enfermedades más recurrentes.",
+  "Planea programas de promoción y prevención de la salud considerando el análisis de las enfermedades más recurrentes.",
+  "Planea y desarrolla programas de promoción y prevención de la salud considerando el análisis de las enfermedades más recurrentes."
+ ],
+ "Promoción y Prevención de la Salud|2. Promueve la participación de la comunidad para prevenir los riesgos.": [
+  "No muestra interés en la promoción de la participación de la comunidad para prevenir los riesgos de salud de grupos específicos.",
+  "Participa de forma esporádica en la participación de la comunidad para prevenir los riesgos de salud",
+  "Se compromete en la promoción de la participación de la comunidad para prevenir algunos de los riesgos de salud en la comunidad en general.",
+  "Se compromete en la promoción de la participación de la comunidad para prevenir los riesgos de salud de grupos específicos.",
+  "Interactúa con responsabilidad y compromiso social en la promoción de la participación de la comunidad para prevenir los riesgos de salud de grupos específicos."
+ ],
+ "Promoción y Prevención de la Salud|4. Muestra interés hacia la enseñanza de otros compañeros, personal y familia.": [
+  "No muestra interés por la enseñanza, utiliza un lenguaje técnico o complejo que el paciente o el familiar no comprende. Muestra impaciencia al responder las preguntas.",
+  "No muestra interés por la enseñanza, pero responde a las preguntas del paciente o familiar sin profundizar en las explicaciones.",
+  "Muestra interés por la enseñanza explicando de manera comprensible para todos, no logra responder las preguntas con claridad pero muestra paciencia y empatía.",
+  "Muestra interés por la enseñanza y explica la información de manera clara, concisa y comprensible para todos. Responde las preguntas y aborda las inquietudes con paciencia y empatía.",
+  "Muestra interés por la enseñanza y la adapta al contexto específico del paciente y su familia, considera conocimientos previos, necesidades de aprendizaje y preferencias. Fomenta la participación activa del paciente y/o familiar (hace preguntas, solicita que le resuman la información)."
+ ],
+ "Investigación Biomédica|1. Realiza lectura crítica de la bibliografía pertinente.": [
+  "No realiza con capacidad una lectura crítica de la bibliografía.",
+  "Realiza una lectura básica de la bibliografía, pero tiene dificultades para analizar y evaluar la información.",
+  "Realiza una lectura crítica de la bibliografía, identificando la información relevante y evaluando su calidad, pero puede tener dificultades para integrar la información de diferentes fuentes o para aplicar la información a situaciones nuevas.",
+  "Realiza una lectura crítica y reflexiva de la bibliografía, analizando la información, evaluando su calidad y validez, e integrándose de manera efectiva para responder a preguntas de investigación o resolver problemas.",
+  "Realiza una lectura crítica y creativa de la bibliografía, generando nuevas ideas, perspectivas o enfoques para abordar problemas de investigación o desafíos en un campo de estudio."
+ ],
+ "Investigación Biomédica|2. Interpreta los resultados de la investigación.": [
+  "Malinterpreta los resultados de los estudios consultados o no los comprende en absoluto.",
+  "Comprende los resultados principales del estudio, pero puede tener dificultades para interpretar detalles o la significancia estadística de los resultados del estudio consultado.",
+  "Comprende los resultados principales del estudio consultado pero tiene dificultades para aplicarlos al caso clínico.",
+  "Interpreta los resultados del estudio consultado y los aplica de forma adecuada al caso clínico, considerando las características del paciente, antecedentes y contexto de la consulta.",
+  "Interpreta los resultados del estudio consultado y los aplica de forma adecuada al caso clínico, considerando las características del paciente, antecedentes y contexto de la consulta. Comunica los resultados al paciente de forma clara y comprensible, explicando las implicaciones para su tratamiento y respondiendo a sus preguntas."
+ ],
+ "Administración de la Práctica Médica|1. Analiza el fundamento constitucional de la Ley General de Salud.": [
+  "No muestra un conocimiento o comprensión del marco legal en salud",
+  "Analiza la base constitucional de la Ley General de Salud y las NOM, pero tiene dificultades para relacionarlos con su práctica profesional.",
+  "Analiza la base constitucional de la Ley General de Salud y sus principios fundamentales, así como las NOM relevantes para su área de práctica, pero puede tener dificultades para aplicarlas en el caso planteado.",
+  "Analiza e interpreta el marco legal en la salud, demuestra un conocimiento adecuado de las NOM relevantes al caso y las aplica en la toma de decisiones.",
+  "Analiza e interpreta el marco legal en la salud, demuestra un conocimiento adecuado de las NOM relevantes al caso y las aplica en la toma de decisiones, comunica la información sobre las NOM de forma clara, concisa y comprensible para la paciente, adaptando su lenguaje a sus necesidades de comprensión."
+ ],
+ "Administración de la Práctica Médica|2. Es veraz y objetivo en la recolección de la información proporcionada.": [
+  "No recolecta información sobre los aspectos legales y administrativos relevantes para el caso.",
+  "Recolecta información incompleta y con falta de objetividad sobre la situación legal o laboral del paciente.",
+  "Recolecta información básica sobre la situación laboral o legal, pero puede omitir detalles importantes. Intenta ser objetivo en la recolección de la información.",
+  "Recolecta la información legal y administrativa de forma objetiva, basándose en hechos y evidencias. Identifica los aspectos relevantes para el caso y sus posibles implicaciones.",
+  "Recolecta la información legal y administrativa de forma objetiva, basándose en hechos y evidencias. Identifica los aspectos relevantes para el caso y sus posibles implicaciones. Además anticipa posibles problemas legales o administrativos que puedan surgir en el caso y toma medidas para prevenirlos (p. ej. recomendar que conserve toda la documentación relacionada)."
+ ],
+ "Administración de la Práctica Médica|3. Se muestra honesto y veraz al informar acerca del estado de salud del paciente.": [
+  "No muestra honestidad o veracidad al informar sobre el estado de salud del paciente.",
+  "Muestra honestidad y veracidad pero comunica la información con dificultad.",
+  "Muestra de manera honesta y veraz la información sobre el estado de salud del paciente pero difícil de comprender para el paciente y el familiar",
+  "Muestra la información de manera honesta, veraz y comprensiva sobre el estado de salud del paciente en una comunicación efectiva y empática con el paciente y sus familiares.",
+  "Muestra la información de manera honesta, veraz, comprensiva y proactiva sobre el estado de salud del paciente, ofreciendo empatía hacia el paciente y sus familiares."
+ ]
+}

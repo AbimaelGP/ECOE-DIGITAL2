@@ -1,0 +1,37 @@
+# Entornos virtuales
+venv/
+.venv/
+ENV/
+
+# Bases de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# IDE
+.vscode/
+.idea/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Historial del evaluador
+Logs/
+# Secretos de Streamlit
+.streamlit/secrets.toml
+
+# Notas locales y registros (pueden contener contraseñas)
+pasos.txt
+Logs/
+*.log

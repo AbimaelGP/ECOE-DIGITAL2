@@ -1,0 +1,61 @@
+{
+    "Biometria Hematica": {
+        "parametros": {
+            "Hemoglobina": {"valor": 14.5, "unidad": "g/dL"},
+            "Hematocrito": {"valor": 42, "unidad": "%"},
+            "Leucocitos": {"valor": 7.5, "unidad": "x10³/µL"},
+            "Plaquetas": {"valor": 250, "unidad": "x10³/µL"}
+        }
+    },
+    "Prueba de glucosa en sangre": {
+        "parametros": {
+            "Glucosa": {"valor": 90, "unidad": "mg/dL"}
+        }
+    },
+    "Troponinas": {
+        "parametros": {
+            "Troponina I": {"valor": 0.02, "unidad": "ng/mL"}
+        }
+    },
+    "Pruebas de funcion pulmonar": {
+        "parametros": {
+            "FEV1": {"valor": 3.5, "unidad": "L"},
+            "FVC": {"valor": 4.2, "unidad": "L"},
+            "Relacion FEV1/FVC": {"valor": 83, "unidad": "%"}
+        }
+    },
+    "Electrocardiograma": {
+        "tipo": "imagen",
+        "imagen_placeholder": "data/estudios_base/imagenes/ecg_normal.png",
+        "parametros": {}
+    },
+    "EGO": {
+        "parametros": {
+            "Proteinas": {"valor": "Negativo", "unidad": "mg/dL"},
+            "Leucocitos": {"valor": 2, "unidad": "por campo"},
+            "Densidad": {"valor": 1.020, "unidad": ""},
+            "pH": {"valor": 6.0, "unidad": ""},
+            "Glucosa": {"valor": "Negativo", "unidad": ""}
+        }
+    },
+    "Rayos X de Torax": {
+        "tipo": "imagen",
+        "imagen_placeholder": "data/estudios_base/imagenes/rayos_x_torax_normal.png",
+        "parametros": {}
+    },
+    "Ecocardiograma": {
+        "tipo": "imagen",
+        "imagen_placeholder": "data/estudios_base/imagenes/ecocardiograma_normal.png",
+        "parametros": {}
+    },
+    "Radiografia de Abdomen": {
+        "tipo": "imagen",
+        "imagen_placeholder": "data/estudios_base/imagenes/radiografia_abdomen_normal.png",
+        "parametros": {}
+    },
+    "Tomografia Abdominal": {
+        "tipo": "imagen",
+        "imagen_placeholder": "data/estudios_base/imagenes/tomografia_abdomen_normal.png",
+        "parametros": {}
+    }
+}
