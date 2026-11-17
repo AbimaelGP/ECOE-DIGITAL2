@@ -736,3 +736,47 @@ def interpretar_kappa(v):
         if v <= lim:
             return txt
     return "Casi perfecta"
+
+
+# ===================== CALIFICACIÓN MÍNIMA Y RESULTADOS POR ESTUDIANTE =====================
+
+def obtener_calificacion_minima():
+    """Calificación mínima guardada (configuracion_examen.id = 1). None si no está configurada."""
+    try:
+        r = supabase.table("configuracion_examen").select("calificacion_minima").eq("id", 1).execute()
+        v = (r.data or [{}])[0].get("calificacion_minima")
+        return float(v) if v is not None else None
+    except Exception:
+        return None
+
+
+def guardar_calificacion_minima(valor, usuario="admin"):
+    try:
+        supabase.table("configuracion_examen").update({
+            "calificacion_minima": valor, "actualizado_por": usuario,
+        }).eq("id", 1).execute()
+        return True, "Calificación mínima guardada"
+    except Exception as e:
+        texto = str(e)
+        if "calificacion_minima" in texto:
+            return False, ("Falta la columna en la base. Ejecuta en Supabase → SQL Editor: "
+                           "alter table public.configuracion_examen add column if not exists calificacion_minima numeric;")
+        return False, f"Error: {texto}"
+
+
+def resultados_por_estudiante():
+    """{matricula: {"por_area": {num_area: final}, "final": promedio, "evaluadas": n, "estaciones": total}}
+    usando la calificación final ponderada (chatbot + médico) de cada estación."""
+    configs = obtener_ponderaciones() if tablas_dual_disponibles() else []
+    salida = {}
+    for f in construir_filas():
+        r = calcular_final(f, ponderacion_para(f, configs)) if tablas_dual_disponibles() else {"final": None}
+        d = salida.setdefault(f["matricula"], {"por_area": {}, "final": None, "evaluadas": 0, "estaciones": 0, "parcial": False})
+        d["estaciones"] += 1
+        if r.get("final") is not None:
+            d["por_area"][f["num_area"]] = r["final"]
+            d["evaluadas"] += 1
+            d["parcial"] = d["parcial"] or bool(r.get("parcial"))
+    for d in salida.values():
+        d["final"] = promedio(list(d["por_area"].values()))
+    return salida

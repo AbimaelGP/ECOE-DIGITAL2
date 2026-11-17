@@ -31,20 +31,33 @@ def obtener_resultados_estudiantes_dinamico():
                     areas_activas.add(int(act["modulo_actual"]))
         except: pass
         
+        # Calificaciones reales: final ponderada (chatbot + médico) de cada estación
+        from utils.evaluacion_dual import resultados_por_estudiante, obtener_calificacion_minima
+        try:
+            notas = resultados_por_estudiante()
+        except Exception as e:
+            print(f"No se pudieron leer las calificaciones: {e}")
+            notas = {}
+        minima = obtener_calificacion_minima()
+        for d in notas.values():
+            areas_activas |= set(d["por_area"].keys())
+
         if not areas_activas: areas_activas = {1, 2}
         areas_ordenadas = sorted(list(areas_activas))
         
         resultados = []
         for user in response.data:
             matricula = user["identificador"]
-            fila = {"Matrícula": matricula, "Alumno": user["nombre"], "Estatus": "Aprobado"}
+            fila = {"Matrícula": matricula, "Alumno": user["nombre"], "Estatus": "Pendiente"}
+            nota_est = notas.get(matricula, {})
             
             tiempo_total_segundos = 0
             calificaciones_numericas = []
             
             for area_id in areas_ordenadas:
                 dur_str = "00:00"
-                calif_val = ""
+                nota_area = nota_est.get("por_area", {}).get(area_id)
+                calif_val = f"{nota_area:.1f}" if nota_area is not None else ""
                 
                 try:
                     r_mod = supabase.table("actividad_estudiante").select("*").eq("matricula", matricula).eq("modulo_actual", area_id).execute()
@@ -70,6 +83,13 @@ def obtener_resultados_estudiantes_dinamico():
             if calificaciones_numericas:
                 calif_final = sum(calificaciones_numericas) / len(calificaciones_numericas)
                 fila["Calificación Final"] = f"{calif_final:.1f}"
+                evaluadas, estaciones = nota_est.get("evaluadas", 0), nota_est.get("estaciones", 0)
+                if estaciones and evaluadas < estaciones:
+                    fila["Estatus"] = f"En evaluación ({evaluadas}/{estaciones} estaciones)"
+                elif minima is None:
+                    fila["Estatus"] = "Sin calificación mínima"
+                else:
+                    fila["Estatus"] = "Aprobado" if calif_final >= minima else "No aprobado"
             else:
                 fila["Calificación Final"] = "Pendiente"
             
@@ -88,7 +108,9 @@ def obtener_estadisticas_completas():
     
     total = len(resultados)
     aprobados = len([r for r in resultados if r["Estatus"] == "Aprobado"])
-    no_aprobados = total - aprobados
+    no_aprobados = len([r for r in resultados if r["Estatus"] == "No aprobado"])
+    from utils.evaluacion_dual import obtener_calificacion_minima
+    minima = obtener_calificacion_minima()
     
     tiempos_totales = [r["Tiempo Total Segundos"] for r in resultados if r["Tiempo Total Segundos"] > 0]
     t_prom_seg = sum(tiempos_totales) / len(tiempos_totales) if tiempos_totales else 0
@@ -115,16 +137,18 @@ def obtener_estadisticas_completas():
                 m, s = map(int, dur_str.split(":"))
                 if m + s > 0: 
                     duraciones.append((m * 60) + s)
-                    aprobados_area += 1 
             except: pass
             
             if calif_str != "Pendiente":
-                try: califs_area.append(float(calif_str))
+                try:
+                    califs_area.append(float(calif_str))
+                    if minima is not None and float(calif_str) >= minima:
+                        aprobados_area += 1
                 except: pass
         
         t_prom_area = sum(duraciones) / len(duraciones) if duraciones else 0
         prom_calif_area = sum(califs_area) / len(califs_area) if califs_area else 0
-        reprobados_area = len(duraciones) - aprobados_area if len(duraciones) > 0 else 0
+        reprobados_area = len(califs_area) - aprobados_area if minima is not None else 0
         
         # Calcular dificultad
         dificultad = "Sin datos"
@@ -139,7 +163,7 @@ def obtener_estadisticas_completas():
             "Nombre": NOMBRES_AREAS.get(area_id, f"Área {area_id}"),
             "Tiempo_Minutos": round(t_prom_area / 60, 1),
             "Calificacion_Promedio": round(prom_calif_area, 2),
-            "Porcentaje_Aprobados": 100 if len(duraciones) > 0 else 0,
+            "Porcentaje_Aprobados": round(100 * aprobados_area / len(califs_area), 1) if califs_area and minima is not None else 0,
             "Aprobados_Area": aprobados_area,
             "No_Aprobados_Area": reprobados_area,
             "Evaluados": len(duraciones),
@@ -187,6 +211,7 @@ def mostrar():
         .area-calificacion span { color: #70257E; font-weight: 600; }
         .estatus-aprobado { color: #008A4B; font-weight: 600; font-size: 14px; }
         .estatus-reprobado { color: #dc3545; font-weight: 600; font-size: 14px; }
+        .estatus-pendiente { color: #626779; font-weight: 600; font-size: 14px; }
         .kpi-card { background-color: #FFFFFF; border-radius: 12px; padding: 1.2rem; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid #70257E; height: 100%; }
         .kpi-value { color: #252A38; font-size: 32px; font-weight: 700; margin: 0; }
         .kpi-label { color: #626779; font-size: 13px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; }
@@ -223,7 +248,8 @@ def mostrar():
             if alumno_seleccionado:
                 matricula_sel = alumno_seleccionado.split("(")[1].replace(")", "")
                 datos = df[df["Matrícula"] == matricula_sel].iloc[0]
-                color_estatus = "estatus-aprobado" if datos['Estatus'] == 'Aprobado' else "estatus-reprobado"
+                color_estatus = ("estatus-aprobado" if datos['Estatus'] == 'Aprobado'
+                                 else "estatus-reprobado" if datos['Estatus'] == 'No aprobado' else "estatus-pendiente")
                 
                 filas_html = ""
                 for area_id in areas_detectadas:

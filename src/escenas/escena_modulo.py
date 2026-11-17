@@ -406,23 +406,42 @@ def mostrar():
         with col_a:
             if st.button("Pedir Estudios", key=f"pedir_estudios_m{modulo_seleccionado}", use_container_width=True):
                 abrir_modal_estudios(escena_key, modulo_seleccionado)
+                st.session_state['desplazar_a'] = 'panel-estudios'
                 st.rerun()
         with col_b:
             if st.button("Dar Diagnóstico", key=f"dar_diagnostico_m{modulo_seleccionado}", use_container_width=True):
                 abrir_modal_diagnostico(escena_key, modulo_seleccionado)
+                st.session_state['desplazar_a'] = 'panel-diagnostico'
                 st.rerun()
     
     # ===== MODAL DE ESTUDIOS =====
     modal_key_estudios = f'modal_estudios_abierto_{escena_key}_{modulo_seleccionado}'
     if st.session_state.get(modal_key_estudios, False):
         st.markdown("---")
+        st.markdown('<div id="panel-estudios"></div>', unsafe_allow_html=True)
         mostrar_modal_estudios(caso_paciente, matricula, tiempo_inicio_examen_global, modulo_seleccionado, escena_key)
     
     # ===== MODAL DE DIAGNÓSTICO =====
     modal_key_diagnostico = f'modal_diagnostico_abierto_{escena_key}_{modulo_seleccionado}'
     if st.session_state.get(modal_key_diagnostico, False):
         st.markdown("---")
+        st.markdown('<div id="panel-diagnostico"></div>', unsafe_allow_html=True)
         mostrar_modal_diagnostico(caso_paciente, matricula, tiempo_inicio_examen_global, modulo_seleccionado, escena_key)
+
+    # ===== LLEVAR LA VISTA AL PANEL RECIÉN ABIERTO (estaba quedando fuera de pantalla, bajo el chat) =====
+    destino = st.session_state.pop('desplazar_a', None)
+    if destino:
+        import streamlit.components.v1 as components
+        components.html(f"""
+            <script>
+              const irA = () => {{
+                const el = window.parent.document.getElementById("{destino}");
+                if (el) {{ el.scrollIntoView({{behavior: "smooth", block: "start"}}); return true; }}
+                return false;
+              }};
+              let intentos = 0;
+              const t = setInterval(() => {{ if (irA() || ++intentos > 20) clearInterval(t); }}, 150);
+            </script>""", height=0)
 
     # ===== TERMINAR MÓDULO DESPUÉS DEL DIAGNÓSTICO =====
     if st.session_state.get('terminar_modulo_despues_diagnostico', False):

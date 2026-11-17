@@ -523,11 +523,31 @@ def mostrar():
     col_pass, col_min = st.columns(2)
     with col_pass: st.text_input("Contraseña de examen", type="password", placeholder="Ingresa la contraseña", key="pass_examen")
     with col_min:
-        calificacion = st.text_input("Calificación mínima aprobatoria", placeholder="1-10", key="calif_minima")
-        if calificacion:
+        from utils.evaluacion_dual import obtener_calificacion_minima, guardar_calificacion_minima
+        if "calif_minima" not in st.session_state:
+            guardada = obtener_calificacion_minima()
+            st.session_state["calif_minima"] = "" if guardada is None else f"{guardada:g}"
+
+        def _guardar_minima():
+            texto = str(st.session_state.get("calif_minima", "")).strip().replace(",", ".")
+            if not texto:
+                return
             try:
-                if int(calificacion) < 1 or int(calificacion) > 10: st.error("La calificación debe estar entre 1 y 10")
-            except: st.error("Ingresa un número válido")
+                valor = float(texto)
+            except ValueError:
+                st.session_state["msg_calif_minima"] = ("error", "Ingresa un número válido")
+                return
+            if not 1 <= valor <= 10:
+                st.session_state["msg_calif_minima"] = ("error", "La calificación debe estar entre 1 y 10")
+                return
+            ok, msg = guardar_calificacion_minima(valor, st.session_state.get("identificador", "admin"))
+            st.session_state["msg_calif_minima"] = ("success" if ok else "error", msg)
+
+        st.text_input("Calificación mínima aprobatoria", placeholder="1-10", key="calif_minima",
+                      on_change=_guardar_minima, help="Se guarda al presionar Enter. Se usa para Aprobado / No aprobado en Resultados.")
+        if st.session_state.get("msg_calif_minima"):
+            tipo, msg = st.session_state.pop("msg_calif_minima")
+            (st.success if tipo == "success" else st.error)(msg)
     
     col_inicio, col_fin = st.columns(2)
     with col_inicio:
