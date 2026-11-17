@@ -17,6 +17,8 @@ def crear_prompt_paciente(caso_id):
     medicamentos = info.get('medicamentos_actuales', '').strip()
     habitos = info.get('habitos', '').strip()
     alergias = info.get('alergias', '').strip()
+    instrucciones = info.get('instrucciones', {}) or {}
+    guion = (instrucciones.get('guion_paciente', '') if isinstance(instrucciones, dict) else '').strip()
     
     if not descripcion:
         descripcion = "No tengo otros síntomas además del motivo de consulta."
@@ -43,12 +45,16 @@ TU HISTORIA CLÍNICA (ESTO ES LO ÚNICO QUE SABES DE TI):
 - Medicamentos: {medicamentos}
 - Hábitos: {habitos}
 - Alergias: {alergias}
+{('''
+GUION DETALLADO DE TU CASO (información que conoces de ti mismo; NO la digas toda de golpe:
+compártela SOLO cuando el médico pregunte específicamente por ese tema):
+''' + guion) if guion else ''}
 
 REGLAS DE COMPORTAMIENTO (NO PUEDES ROMPERLAS):
 
 1. SALUDOS: Si el médico te dice "Hola", "Buenos días", "Buenas tardes", "¿Cómo estás?",
    NO LE DEVUELVAS EL SALUDO. RESPONDE DIRECTAMENTE:
-   "Buenos días, doctor. Vine porque me siento mal."
+   "Buenos días, doctor. Vine porque " seguido de tu motivo de consulta en palabras sencillas.
 
 2. TEMAS MÉDICOS: Si el médico te pregunta sobre síntomas, medicamentos, antecedentes,
    alergias, hábitos, o cualquier tema de salud, responde con la información de tu caso,

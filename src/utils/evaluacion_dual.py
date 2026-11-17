@@ -428,6 +428,10 @@ def construir_prompt_chatbot(caso, criterios, evidencia):
     else:
         transcript = "(sin conversación: caso sin paciente virtual)"
 
+    preguntas_esp = "\n".join(
+        f"- {p.get('pregunta', '')} → respuesta esperada: {p.get('respuesta_esperada', p.get('respuesta', ''))}"
+        for p in (solucion.get("preguntas") or []) if isinstance(p, dict) and p.get("pregunta")
+    ) or "(sin preguntas registradas)"
     estudios = ", ".join(evidencia["estudios"]) or "ninguno registrado"
     respuestas = texto_respuestas(evidencia["respuestas"]) or "(sin respuestas escritas)"
 
@@ -440,6 +444,8 @@ Diagnóstico esperado: {solucion.get('diagnostico_correcto', '')}
 Diagnóstico alternativo aceptable: {solucion.get('diagnostico_alternativo', '')}
 Tratamiento esperado: {solucion.get('tratamiento_esperado', '')}
 Errores críticos: {solucion.get('errores_criticos', '')}
+Preguntas del caso y respuestas esperadas (definidas por el médico):
+{preguntas_esp}
 
 COMPETENCIAS A EVALUAR (escala 1–10 con 5 niveles):
 {chr(10).join(lineas_crit)}

@@ -299,6 +299,35 @@ def obtener_estudiantes_supabase():
         print(f"Error al obtener estudiantes: {e}")
         return []
 
+def _a_fecha(v):
+    """Texto de la base → date (acepta 2026-11-20, 20/11/2026, 20-11-2026)."""
+    from datetime import datetime, date
+    if isinstance(v, date): return v
+    t = _celda(v)
+    for f in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+        try: return datetime.strptime(t, f).date()
+        except Exception: pass
+    return None
+
+def _a_hora(v):
+    """Texto de la base → time (acepta 08:00, 8:00, 08:00:00)."""
+    from datetime import datetime, time
+    if isinstance(v, time): return v
+    t = _celda(v)
+    for f in ("%H:%M", "%H:%M:%S"):
+        try: return datetime.strptime(t, f).time()
+        except Exception: pass
+    return None
+
+def _valor_guardable(campo, v):
+    """Lo que se guarda en la base: fecha YYYY-MM-DD, hora HH:MM, vacío = None (nunca NaN)."""
+    if campo == "fecha_examen":
+        d = _a_fecha(v); return d.strftime("%Y-%m-%d") if d else None
+    if campo in ("hora_inicio", "hora_fin"):
+        h = _a_hora(v); return h.strftime("%H:%M") if h else None
+    t = _celda(v)
+    return t or None
+
 def actualizar_campo_estudiante_supabase(matricula, campo, valor):
     if not supabase: return False, "Supabase no conectado"
     if campo not in ['numero_estudiante', 'circuito_asignado', 'fecha_examen', 'hora_inicio', 'hora_fin']: return False, f"Campo {campo} no valido"
@@ -361,13 +390,25 @@ def mostrar():
             df_estudiantes = pd.DataFrame(estudiantes)
             columnas_orden = ["matricula", "nombre", "clave_acceso", "numero_estudiante", "circuito_asignado", "fecha_examen", "hora_inicio", "hora_fin"]
             df_estudiantes = df_estudiantes[[col for col in columnas_orden if col in df_estudiantes.columns]]
+            # Fechas y horas como selectores (evita textos que el examen no puede interpretar)
+            if "fecha_examen" in df_estudiantes: df_estudiantes["fecha_examen"] = df_estudiantes["fecha_examen"].map(_a_fecha)
+            for c in ("hora_inicio", "hora_fin"):
+                if c in df_estudiantes: df_estudiantes[c] = df_estudiantes[c].map(_a_hora)
+            try:
+                from escenas.escena_admin_creadores import obtener_lista_circuitos
+                opciones_circuito = [c for c in obtener_lista_circuitos() if c != "Todos"]
+            except Exception:
+                opciones_circuito = None
             
             df_editado = st.data_editor(
                 df_estudiantes, use_container_width=True, hide_index=True,
                 column_config={
                     "matricula": "Matrícula", "nombre": "Nombre Completo", "clave_acceso": "Clave Acceso",
-                    "numero_estudiante": st.column_config.NumberColumn("Número Estudiante"), "circuito_asignado": "Circuito",
-                    "fecha_examen": "Fecha Examen", "hora_inicio": "Hora Inicio", "hora_fin": "Hora Fin"
+                    "numero_estudiante": st.column_config.NumberColumn("Número Estudiante"), "circuito_asignado": (st.column_config.SelectboxColumn("Circuito", options=opciones_circuito)
+                                          if opciones_circuito else "Circuito"),
+                    "fecha_examen": st.column_config.DateColumn("Fecha Examen", format="DD/MM/YYYY"),
+                    "hora_inicio": st.column_config.TimeColumn("Hora Inicio", format="HH:mm", step=300),
+                    "hora_fin": st.column_config.TimeColumn("Hora Fin", format="HH:mm", step=300)
                 }
             )
             
@@ -381,8 +422,9 @@ def mostrar():
                         original = df_estudiantes[df_estudiantes['matricula'] == matricula]
                         if not original.empty:
                             for campo in ['hora_inicio', 'hora_fin', 'circuito_asignado', 'fecha_examen']:
-                                if str(row[campo]) != str(original.iloc[0][campo]):
-                                    exito, mensaje = actualizar_campo_estudiante_supabase(matricula, campo, row[campo])
+                                nuevo = _valor_guardable(campo, row[campo])
+                                if nuevo != _valor_guardable(campo, original.iloc[0][campo]):
+                                    exito, mensaje = actualizar_campo_estudiante_supabase(matricula, campo, nuevo)
                                     if exito: cambios_realizados = True
                                     else: errores.append(f"{matricula} - {campo}: {mensaje}")
                     
