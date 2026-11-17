@@ -91,7 +91,8 @@ def mostrar():
     circuitos_dict = {c["nombre"]: c for c in res_circ.data} if res_circ.data else {}
 
     # Obtener evaluaciones ya existentes para descargar de inmediato
-    res_eval = supabase.table("evaluaciones_pdf").select("matricula, url_pdf").execute()
+    res_eval = supabase.table("evaluaciones_pdf").select("matricula, url_pdf, fecha_creacion").order("fecha_creacion").execute()
+    # al recorrer en orden de fecha, se queda el PDF más reciente de cada estudiante
     evaluaciones_dict = {e["matricula"]: e["url_pdf"] for e in res_eval.data} if res_eval.data else {}
 
     # ===== CONSTRUIR LA TABLA =====
@@ -178,21 +179,21 @@ def mostrar():
             # Se puede evaluar cuando el estudiante ya pasó por TODAS sus estaciones
             # (aunque en alguna no haya guardado respuestas porque se le acabó el tiempo)
             disabled_eval = (
-                bool(url_pdf_existente) 
-                or (intentadas < total_casos) 
+                (intentadas < total_casos) 
                 or (total_casos == 0)
                 or evaluando_ahora # 👈 Deshabilitar el botón mientras se procesa
             )
-            if url_pdf_existente:
-                ayuda = "Ya tiene evaluación en PDF"
-            elif total_casos == 0:
+            if total_casos == 0:
                 ayuda = "El estudiante no tiene circuito con estaciones"
             elif intentadas < total_casos:
                 ayuda = f"Se habilita cuando el estudiante pase por todas sus estaciones ({intentadas}/{total_casos})"
+            elif url_pdf_existente:
+                ayuda = "Vuelve a evaluar con el chatbot y genera un PDF nuevo (el anterior se conserva en el almacenamiento)"
             else:
                 ayuda = "Genera la evaluación del chatbot (PDF)"
             
-            if st.button("Evaluar", key=f"eval_{matricula}", disabled=disabled_eval, use_container_width=True, help=ayuda):
+            etiqueta_btn = "Re-evaluar" if url_pdf_existente else "Evaluar"
+            if st.button(etiqueta_btn, key=f"eval_{matricula}", disabled=disabled_eval, use_container_width=True, help=ayuda):
                 st.session_state[f"evaluando_{matricula}"] = True
                 st.rerun()
 

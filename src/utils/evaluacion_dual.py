@@ -780,3 +780,12 @@ def resultados_por_estudiante():
     for d in salida.values():
         d["final"] = promedio(list(d["por_area"].values()))
     return salida
+
+
+def obtener_eval_chatbot_reciente(matricula, clave_caso):
+    try:
+        r = supabase.table("evaluacion_chatbot").select("*").eq("matricula", matricula).eq("clave_caso", clave_caso) \
+            .order("fecha_evaluacion", desc=True).limit(1).execute()
+        return r.data[0] if r.data else None
+    except Exception:
+        return None

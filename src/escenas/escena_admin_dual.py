@@ -149,17 +149,26 @@ def _tabla_comparativa(filas, configs):
             etiqueta = "Re-evaluar con chatbot" if f["eval_chatbot"] else "Evaluar con chatbot"
             if a3.button(etiqueta, use_container_width=True, key="cmp_ev",
                          help="Ejecuta el chatbot evaluador (Gemini) para este estudiante y caso"):
+                antes = ed.nota_chatbot(f)
                 with st.spinner("El chatbot está evaluando…"):
                     try:
                         ok, msg = ed.evaluar_con_chatbot(f["matricula"], f["clave_caso"], f["num_area"])
                     except Exception as e:
                         ok, msg = False, str(e)
-                (st.success if ok else st.error)(msg)
                 if ok:
+                    from utils.horario import ahora
+                    nueva = ed.obtener_eval_chatbot_reciente(f["matricula"], f["clave_caso"])
+                    st.session_state["adm_dual_msg"] = (
+                        f"Re-evaluado a las {ahora():%H:%M}: {f['nombre']} · {f['clave_caso']} — "
+                        f"chatbot {ui.fmt(antes)} → {ui.fmt((nueva or {}).get('calificacion'))}. "
+                        "El PDF no cambia; para regenerarlo usa \"Re-evaluar\" en la tabla de PDF.")
                     st.rerun()
+                else:
+                    st.error(msg)
         try:
             from utils.supabase_client import supabase
-            pdf = supabase.table("evaluaciones_pdf").select("url_pdf").eq("matricula", f["matricula"]).execute().data
+            pdf = supabase.table("evaluaciones_pdf").select("url_pdf, fecha_creacion").eq("matricula", f["matricula"]) \
+                .order("fecha_creacion").execute().data
             if pdf:
                 a4.link_button("Ver resultados (PDF)", pdf[-1]["url_pdf"], use_container_width=True)
         except Exception:
