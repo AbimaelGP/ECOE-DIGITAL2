@@ -204,6 +204,11 @@ def mostrar():
     
     # ===== BOTÓN FINALIZAR EXAMEN =====
     if _todos_completados(modulos):
+        # Terminó el circuito: se evalúa automáticamente aunque no presione "Finalizar Examen"
+        if not st.session_state.get('evaluacion_lanzada', False):
+            from utils.evaluacion_automatica import lanzar_evaluacion
+            lanzar_evaluacion(st.session_state.get('identificador'), st.session_state.get('nombre'))
+            st.session_state['evaluacion_lanzada'] = True
         st.markdown("---")
         col1, col2, col3 = st.columns([2, 1.2, 2])
         with col2:

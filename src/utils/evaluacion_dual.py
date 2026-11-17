@@ -25,7 +25,7 @@ from utils.supabase_client import supabase
 
 # ===================== CONFIGURACIÓN =====================
 
-PROMPT_VERSION = "v2.0"
+PROMPT_VERSION = "v2.1"
 
 # Escala de la propuesta (puedes ajustar los rangos aquí y se actualiza en toda la app)
 NIVELES = [
@@ -88,6 +88,20 @@ def indice_nivel(puntaje):
         if n == nombre:
             return i
     return None
+
+
+def calificacion_por_areas(items):
+    """Calificación del caso igual que la carátula institucional:
+    promedio de cada área troncal (Básicas, Específicas, Profesionales) y luego promedio de esas áreas."""
+    grupos = {}
+    for it in items or []:
+        p = it.get("puntaje")
+        if p is None:
+            continue
+        grupos.setdefault(it.get("categoria") or "General", []).append(float(p))
+    if not grupos:
+        return None
+    return round(sum(sum(v) / len(v) for v in grupos.values()) / len(grupos), 2)
 
 
 def promedio(valores):
@@ -338,7 +352,7 @@ def guardar_eval_docente(fila, criterios, comentarios_generales, evaluador, envi
         "evaluador": evaluador,
         "criterios": criterios,
         "comentarios_generales": comentarios_generales,
-        "calificacion": promedio(puntajes),
+        "calificacion": calificacion_por_areas([c for c in criterios if c.get("puntaje")]),
         "updated_at": _ahora(),
     }
     existente = obtener_eval_docente(fila["matricula"], fila["clave_caso"], evaluador)
@@ -352,6 +366,12 @@ def guardar_eval_docente(fila, criterios, comentarios_generales, evaluador, envi
             supabase.table("evaluacion_docente").update(datos).eq("id", existente["id"]).execute()
         else:
             supabase.table("evaluacion_docente").insert(datos).execute()
+        if enviar:
+            try:
+                from utils.evaluacion_automatica import al_enviar_medico
+                al_enviar_medico(fila["matricula"])
+            except Exception:
+                pass
         return True, "Evaluación enviada" if enviar else "Borrador guardado"
     except Exception as e:
         return False, f"Error al guardar: {e}"
@@ -470,7 +490,7 @@ INSTRUCCIONES:
 Devuelve SOLO este JSON:
 {{"competencias": [{{"indice": 1, "puntaje": 7, "nivel": "Autónomo", "criterio": "...",
   "evidencias": [{{"mensaje": 3, "cita": "..."}}], "para_subir": "..."}}],
-  "resumen": "comentario global en 2 oraciones"}}"""
+  "resumen": "retroalimentación detallada para el estudiante (4 a 6 oraciones): qué hizo bien, qué le faltó y qué debe estudiar"}}"""
 
 
 def evaluar_con_chatbot(matricula, clave_caso, modulo=None):
@@ -518,7 +538,7 @@ def evaluar_con_chatbot(matricula, clave_caso, modulo=None):
             "para_subir": "" if puntaje >= 9 else str(c.get("para_subir", "")),
         })
 
-    calif = promedio([c["puntaje"] for c in competencias])
+    calif = calificacion_por_areas(competencias)
     registro = {
         "matricula": matricula, "clave_caso": clave_caso, "modulo": str(modulo or ""),
         "modalidad": modalidad, "competencias": competencias, "calificacion": calif,

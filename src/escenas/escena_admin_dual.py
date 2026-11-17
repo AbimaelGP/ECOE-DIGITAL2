@@ -131,7 +131,8 @@ def _tabla_comparativa(filas, configs):
                           "w_chatbot": r["w_chatbot"], "w_medico": r["w_medico"], "final": r["final"],
                           "parcial": r["parcial"]})
 
-    st.caption(f"{len(vista)} estaciones · selecciona una fila para ver el comparativo o evaluarla con el chatbot.")
+    st.caption(f"{len(vista)} estaciones · selecciona una fila para ver el comparativo o descargar su PDF. "
+               "El chatbot evalúa automáticamente cuando el estudiante termina su circuito.")
     sel = st.dataframe(pd.DataFrame(registros), hide_index=True, use_container_width=True, height=420,
                        on_select="rerun", selection_mode="single-row", key="cmp_tabla")
     filas_sel = sel.selection.rows if sel and hasattr(sel, "selection") else []
@@ -145,32 +146,14 @@ def _tabla_comparativa(filas, configs):
             st.session_state["adm_dual_fila"] = f
             st.session_state["adm_dual_vista"] = "comparativo"
             st.rerun()
-        if f["modalidad"] != "Estandarizado" and f["realizada"]:
-            etiqueta = "Re-evaluar con chatbot" if f["eval_chatbot"] else "Evaluar con chatbot"
-            if a3.button(etiqueta, use_container_width=True, key="cmp_ev",
-                         help="Ejecuta el chatbot evaluador (Gemini) para este estudiante y caso"):
-                antes = ed.nota_chatbot(f)
-                with st.spinner("El chatbot está evaluando…"):
-                    try:
-                        ok, msg = ed.evaluar_con_chatbot(f["matricula"], f["clave_caso"], f["num_area"])
-                    except Exception as e:
-                        ok, msg = False, str(e)
-                if ok:
-                    from utils.horario import ahora
-                    nueva = ed.obtener_eval_chatbot_reciente(f["matricula"], f["clave_caso"])
-                    st.session_state["adm_dual_msg"] = (
-                        f"Re-evaluado a las {ahora():%H:%M}: {f['nombre']} · {f['clave_caso']} — "
-                        f"chatbot {ui.fmt(antes)} → {ui.fmt((nueva or {}).get('calificacion'))}. "
-                        "El PDF no cambia; para regenerarlo usa \"Re-evaluar\" en la tabla de PDF.")
-                    st.rerun()
-                else:
-                    st.error(msg)
         try:
             from utils.supabase_client import supabase
             pdf = supabase.table("evaluaciones_pdf").select("url_pdf, fecha_creacion").eq("matricula", f["matricula"]) \
                 .order("fecha_creacion").execute().data
             if pdf:
-                a4.link_button("Ver resultados (PDF)", pdf[-1]["url_pdf"], use_container_width=True)
+                a3.link_button("Ver resultados (PDF)", pdf[-1]["url_pdf"], use_container_width=True)
+                a4.link_button("Descargar PDF", pdf[-1]["url_pdf"] + ("&" if "?" in pdf[-1]["url_pdf"] else "?") + "download=",
+                               use_container_width=True)
         except Exception:
             pass
     else:

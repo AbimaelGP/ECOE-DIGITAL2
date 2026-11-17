@@ -46,6 +46,11 @@ def mostrar():
     # ===== SI TODO ESTÁ COMPLETADO, MOSTRAR PANTALLA FINAL =====
     if not st.session_state.get('examen_finalizado', False):
         st.session_state['examen_finalizado'] = True
+    # Evaluación automática con el chatbot (una sola vez, en segundo plano)
+    if not st.session_state.get('evaluacion_lanzada', False):
+        from utils.evaluacion_automatica import lanzar_evaluacion
+        lanzar_evaluacion(matricula, nombre)
+        st.session_state['evaluacion_lanzada'] = True
     
     # CSS
     st.markdown("""

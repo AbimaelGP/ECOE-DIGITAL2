@@ -76,11 +76,161 @@ def generar_texto_conversacion(matricula, clave_caso):
     
     return texto
 
+ORDEN_AREAS = ["BÁSICAS", "ESPECÍFICAS", "PROFESIONALES"]
+
+
+def _a_formato_caratula(items, resumen=""):
+    """Convierte la evaluación por competencias (chatbot o médico) al formato de la carátula institucional."""
+    import re as _re
+    evaluacion, cats = [], []
+    for it in items:
+        cat = (it.get("categoria") or "General").upper()
+        if cat not in cats:
+            cats.append(cat)
+        texto = _re.sub(r"^\s*\d+\.\s*", "", it.get("texto", ""))
+        evaluacion.append({
+            "criterio": texto, "categoria": cat,
+            "puntuacion": float(it.get("puntaje") or 0), "maxima": 10,
+            "nivel": it.get("nivel", ""),
+            "fortalezas": it.get("criterio", ""),
+            "debilidades": it.get("para_subir") or it.get("comentario") or "",
+            "justificacion": it.get("criterio", ""),
+        })
+    cats.sort(key=lambda c: ORDEN_AREAS.index(c) if c in ORDEN_AREAS else 99)
+    rubrica = {"categorias": [{"nombre": c, "criterios": [e for e in evaluacion if e["categoria"] == c]} for c in cats]}
+    return {"evaluacion": evaluacion, "observaciones": resumen}, rubrica
+
+
+ESPERA_MEDICO = "ESPERA_MEDICO"
+
+
+def _eval_chatbot_vigente(matricula, clave_caso):
+    """Evaluación del chatbot ya guardada con la versión actual del prompt (para no repetirla)."""
+    from utils import evaluacion_dual as ed
+    try:
+        r = supabase.table("evaluacion_chatbot").select("*").eq("matricula", matricula) \
+            .eq("clave_caso", clave_caso).eq("prompt_version", ed.PROMPT_VERSION).execute()
+        return r.data[-1] if r.data else None
+    except Exception:
+        return None
+
+
+def _evaluar_y_pdf_unificado(matricula, nombre_completo, circuito, casos, progress_bar=None):
+    """Una sola evaluación por caso (la misma de la tabla comparativa) y la carátula
+    institucional se arma con ella: el PDF y la app muestran la misma calificación.
+
+    El PDF se genera solo cuando TODAS las estaciones tienen evaluación. Si falta la del
+    médico en un caso estandarizado, devuelve (False, "ESPERA_MEDICO: ...") y se vuelve a
+    lanzar cuando el médico envía. Los casos ya evaluados por el chatbot no se re-evalúan."""
+    from utils import evaluacion_dual as ed
+    from utils.evaluador.evaluador_api import GeneradorCaratula
+    from utils.pdf_subcompetencias import generar_pagina_subcompetencias, generar_resumen_circuito
+
+    total = len(casos)
+    estaciones, espera, errores = [], [], []
+    # 1) Reunir la evaluación de cada estación
+    for idx, caso in enumerate(casos):
+        if progress_bar:
+            progress_bar.progress(idx / total, text=f"Evaluando caso {idx + 1}/{total}: {caso['clave_caso']}")
+        info = ed.obtener_caso(caso["clave_caso"]) or {}
+        modalidad = ed.modalidad_de(info.get("tipo_caso")) if info else "—"
+        est = {"area": caso["area"], "clave_caso": caso["clave_caso"], "modalidad": modalidad,
+               "evaluador": None, "calificacion": None, "items": None, "resumen": "", "estado": ""}
+        estaciones.append(est)
+        if not info:
+            est["estado"] = "Caso no encontrado"
+            continue
+        if modalidad == "Estandarizado":
+            try:
+                r = supabase.table("evaluacion_docente").select("*").eq("matricula", matricula) \
+                    .eq("clave_caso", caso["clave_caso"]).eq("estatus", "enviada").execute()
+                d = r.data[-1] if r.data else None
+            except Exception:
+                d = None
+            if d:
+                est.update(evaluador="Médico", items=ed._a_json(d.get("criterios"), []),
+                           resumen=d.get("comentarios_generales") or "")
+            else:
+                est["estado"] = "Esperando médico"
+                espera.append(caso["clave_caso"])
+            continue
+        ev = _eval_chatbot_vigente(matricula, caso["clave_caso"])
+        if not ev:
+            ok, msg = ed.evaluar_con_chatbot(matricula, caso["clave_caso"], caso.get("num_area"))
+            if ok:
+                ev = _eval_chatbot_vigente(matricula, caso["clave_caso"])
+            elif "sin evidencia" in msg or "no tiene evidencia" in msg or "no tiene competencias" in msg:
+                est["estado"] = "Sin evidencia" if "evidencia" in msg else "Sin competencias"
+                continue
+            else:
+                errores.append(f"{caso['clave_caso']}: {msg}")
+                continue
+        if ev:
+            est.update(evaluador="Chatbot", items=ed._a_json(ev.get("competencias"), []), resumen=ev.get("resumen", ""))
+
+    for est in estaciones:
+        if est["items"]:
+            est["calificacion"] = ed.calificacion_por_areas(est["items"])
+
+    if errores:
+        return False, "No se pudo evaluar: " + " | ".join(errores)
+    if espera:
+        return False, f"{ESPERA_MEDICO}: falta la evaluación del médico en {', '.join(espera)}"
+    if not any(e["items"] for e in estaciones):
+        return False, "Ninguna estación tiene evaluación (" + ", ".join(e["estado"] for e in estaciones) + ")"
+
+    # 2) Armar el PDF: resumen del circuito (si hay varias estaciones) + carátula y gráfica por estación
+    if progress_bar:
+        progress_bar.progress(0.95, text="Generando PDF...")
+    temp_dir = tempfile.mkdtemp()
+    rutas = []
+    if len(estaciones) > 1:
+        rutas.append(generar_resumen_circuito(estaciones, os.path.join(temp_dir, "00_resumen.pdf"),
+                                              matricula=matricula, nombre=nombre_completo, circuito=circuito))
+    for n, est in enumerate(estaciones, 1):
+        if not est["items"]:
+            continue
+        etiqueta = f"{nombre_completo} - Estación {n}: {est['area']} ({est['clave_caso']})"
+        evaluacion, rubrica = _a_formato_caratula(est["items"], est["resumen"])
+        ruta_caso = os.path.join(temp_dir, f"{n:02d}_{est['clave_caso']}.pdf")
+        ok_pdf, msg_pdf = GeneradorCaratula.generar_pdf(evaluacion, rubrica, ruta_caso, matricula=matricula, nombre=etiqueta)
+        if not ok_pdf:
+            return False, f"{est['clave_caso']}: {msg_pdf}"
+        rutas.append(ruta_caso)
+        try:
+            rutas.append(generar_pagina_subcompetencias(
+                est["items"], os.path.join(temp_dir, f"{n:02d}_{est['clave_caso']}_sub.pdf"),
+                matricula=matricula, nombre=etiqueta))
+        except Exception as e:
+            print(f"⚠️ No se generó la gráfica por subcompetencia: {e}")
+
+    if progress_bar:
+        progress_bar.progress(1.0, text="Uniendo PDFs finales...")
+    merger = PdfMerger()
+    for r_pdf in rutas:
+        merger.append(r_pdf)
+    ruta_final = os.path.join(temp_dir, f"Evaluacion_{matricula}.pdf")
+    merger.write(ruta_final)
+    merger.close()
+    return True, ruta_final
+
+
 def evaluar_estudiante_completo(matricula, nombre_completo, circuito, progress_bar=None):
     try:
         casos = obtener_casos_circuito(circuito)
         if not casos:
             return False, "El circuito no tiene casos asignados."
+
+        # Si existen las tablas de la evaluación dual, el PDF usa ESA evaluación (una sola fuente).
+        try:
+            from utils.evaluacion_dual import tablas_dual_disponibles
+            if tablas_dual_disponibles():
+                return _evaluar_y_pdf_unificado(matricula, nombre_completo, circuito, casos, progress_bar)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return False, f"Error en la evaluación: {e}"
+        # (Respaldo: evaluador original, solo si la base no tiene las tablas nuevas)
 
         temp_dir = tempfile.mkdtemp()
         rutas_pdfs_generados = []

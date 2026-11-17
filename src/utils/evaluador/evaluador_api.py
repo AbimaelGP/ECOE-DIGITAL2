@@ -55,16 +55,21 @@ class GeneradorCaratula:
 
     @staticmethod
     def _nivel_desde_10(valor_10):
-        pct = valor_10 * 10
-        if pct >= 90:
-            return "ESTRATÉGICO"
-        if pct >= 60:
-            return "AUTÓNOMO"
-        if pct >= 40:
-            return "RESOLUTIVO"
-        if pct >= 20:
-            return "RECEPTIVO"
-        return "PREFORMAL"
+        """Misma escala que el resto de la app (NIVELES en utils/evaluacion_dual.py)."""
+        try:
+            from utils.evaluacion_dual import nivel_de_puntaje
+            return (nivel_de_puntaje(max(1.0, valor_10)) or "Preformal").upper()
+        except Exception:
+            pct = valor_10 * 10
+            if pct >= 90:
+                return "ESTRATÉGICO"
+            if pct >= 60:
+                return "AUTÓNOMO"
+            if pct >= 40:
+                return "RESOLUTIVO"
+            if pct >= 20:
+                return "RECEPTIVO"
+            return "PREFORMAL"
 
     @staticmethod
     def _descripcion_nivel(nivel_des):

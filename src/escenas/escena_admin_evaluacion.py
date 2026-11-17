@@ -76,7 +76,8 @@ def mostrar():
     </style>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div class="section-title">Generar evaluación del chatbot (PDF por estudiante)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Evaluación del chatbot (PDF por estudiante)</div>', unsafe_allow_html=True)
+    st.caption("El chatbot evalúa automáticamente a cada estudiante al terminar su circuito. Aquí puedes ver y descargar su PDF.")
     
     # Obtener datos de estudiantes
     res_est = supabase.table("perfiles_estudiantes").select("matricula, nombre_completo, circuito_asignado, fecha_examen").execute()
@@ -97,7 +98,7 @@ def mostrar():
 
     # ===== CONSTRUIR LA TABLA =====
     headers = ["Matrícula", "Nombre", "Circuito", "Fecha Examen", "Estatus del Examen", "", ""]
-    cols_pesos = [1, 2.5, 1, 1.2, 1.8, 1.5, 1]
+    cols_pesos = [1.05, 2.1, 0.95, 1.1, 1.5, 1.3, 1.5]
     
     cols = st.columns(cols_pesos)
     
@@ -161,72 +162,45 @@ def mostrar():
                 if intentadas > completadas:
                     st.caption(f"{intentadas - completadas} estación(es) sin respuestas guardadas")
 
-        # 4. Columna de Descarga / Carga
+        # 4 y 5. Resultados: ver y descargar el PDF. Ya no se re-evalúa desde aquí:
+        #        el chatbot evalúa automáticamente cuando el estudiante termina su circuito.
         url_pdf_existente = evaluaciones_dict.get(matricula)
-        evaluando_ahora = st.session_state.get(f"evaluando_{matricula}", False)
-        
-        with cols[5]:
-            if url_pdf_existente:
-                st.link_button("Ver resultados", url_pdf_existente, use_container_width=True)
-            elif evaluando_ahora:
-                # 👈 AQUÍ SE MUESTRA EL TEXTO DE CARGA EN LA TABLA
-                st.markdown('<div class="cargando-tabla">Procesando...</div>', unsafe_allow_html=True)
-            else:
-                st.markdown('<div style="text-align:center; font-size:14px; color:#A0AABF;">-</div>', unsafe_allow_html=True)
+        from utils.evaluacion_automatica import en_curso, lanzar_evaluacion, falta_medico, ultimo_resultado
+        termino = total_casos > 0 and intentadas >= total_casos
+        faltan_medico = falta_medico(matricula, circuito_nombre) if termino and not url_pdf_existente else []
 
-        # 5. Columna de Acción (Botón Evaluar)
-        with cols[6]:
-            # Se puede evaluar cuando el estudiante ya pasó por TODAS sus estaciones
-            # (aunque en alguna no haya guardado respuestas porque se le acabó el tiempo)
-            disabled_eval = (
-                (intentadas < total_casos) 
-                or (total_casos == 0)
-                or evaluando_ahora # 👈 Deshabilitar el botón mientras se procesa
-            )
-            if total_casos == 0:
-                ayuda = "El estudiante no tiene circuito con estaciones"
-            elif intentadas < total_casos:
-                ayuda = f"Se habilita cuando el estudiante pase por todas sus estaciones ({intentadas}/{total_casos})"
-            elif url_pdf_existente:
-                ayuda = "Vuelve a evaluar con el chatbot y genera un PDF nuevo (el anterior se conserva en el almacenamiento)"
-            else:
-                ayuda = "Genera la evaluación del chatbot (PDF)"
-            
-            etiqueta_btn = "Re-evaluar" if url_pdf_existente else "Evaluar"
-            if st.button(etiqueta_btn, key=f"eval_{matricula}", disabled=disabled_eval, use_container_width=True, help=ayuda):
-                st.session_state[f"evaluando_{matricula}"] = True
+        if url_pdf_existente:
+            cols[5].link_button("Ver PDF", url_pdf_existente, use_container_width=True)
+            url_descarga = url_pdf_existente + ("&" if "?" in url_pdf_existente else "?") + "download="
+            cols[6].link_button("Descargar PDF", url_descarga, use_container_width=True)
+        elif en_curso(matricula):
+            cols[5].markdown('<div class="cargando-tabla">Evaluando…</div>', unsafe_allow_html=True)
+            if cols[6].button("Actualizar", key=f"act_{matricula}", use_container_width=True):
                 st.rerun()
+        elif termino and faltan_medico:
+            # Hay estación(es) estandarizadas sin evaluación del médico: el PDF se genera
+            # solo en cuanto el médico la envía.
+            cols[5].markdown('<div style="text-align:center; font-size:13px; color:#A0AABF;">Sin PDF aún</div>',
+                             unsafe_allow_html=True)
+            cols[6].button("Esperando médico", key=f"espm_{matricula}", disabled=True, use_container_width=True,
+                           help="Falta la evaluación del médico en: " + ", ".join(faltan_medico)
+                                + ". El PDF se genera automáticamente cuando la envíe.")
+        elif termino:
+            # Respaldo: terminó el circuito pero no tiene evaluación (p. ej. falló la automática
+            # o terminó antes de esta versión). Solo aparece mientras NO exista PDF.
+            cols[5].markdown('<div style="text-align:center; font-size:13px; color:#A0AABF;">Sin evaluación</div>',
+                             unsafe_allow_html=True)
+            if cols[6].button("Generar evaluación", key=f"gen_{matricula}", use_container_width=True,
+                              help="Solo para estudiantes que terminaron y no tienen evaluación. No re-evalúa."):
+                with st.spinner(f"Evaluando a {nombre}… (puede tardar 1–2 minutos)"):
+                    lanzar_evaluacion(matricula, nombre, circuito_nombre, esperar=True)
+                st.rerun()
+            _motivo = ultimo_resultado(matricula)
+            if _motivo:
+                cols[5].caption(f"Último intento: {_motivo[:120]}")
+        else:
+            cols[5].markdown('<div style="text-align:center; font-size:14px; color:#A0AABF;">-</div>', unsafe_allow_html=True)
+            cols[6].button("Pendiente", key=f"pend_{matricula}", disabled=True, use_container_width=True,
+                           help=f"Se evalúa automáticamente al terminar su circuito ({intentadas}/{total_casos} estaciones)")
 
-        # 👈 LÓGICA DE EVALUACIÓN CON STATUS ESTILIZADO 👈
-        if evaluando_ahora:
-            # Usamos CSS para empujar el status a la derecha y que se vea alineado con la columna
-            st.markdown('<div style="margin-left: 45%; margin-top: -15px; margin-bottom: 15px;">', unsafe_allow_html=True)
-            
-            with st.status(f"Evaluando a {nombre}...", expanded=True) as status:
-                class StatusProgress:
-                    def progress(self, val, text=""):
-                        status.update(label=text)
-                
-                prog = StatusProgress()
-                
-                exito, resultado = evaluar_estudiante_completo(matricula, nombre, circuito_nombre, prog)
-                
-                if exito:
-                    status.update(label="Subiendo PDF a la nube...", state="running")
-                    url_pdf = subir_pdf_a_supabase(resultado, matricula, circuito_nombre)
-                    
-                    if url_pdf:
-                        status.update(label="¡Evaluación completada con éxito!", state="complete")
-                        st.session_state[f"evaluando_{matricula}"] = False
-                        os.remove(resultado)
-                        st.rerun() 
-                    else:
-                        status.update(label="Error al subir a Supabase", state="error")
-                        st.session_state[f"evaluando_{matricula}"] = False
-                else:
-                    status.update(label=f"Error: {resultado}", state="error")
-                    st.session_state[f"evaluando_{matricula}"] = False
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-                
         st.markdown("---")
