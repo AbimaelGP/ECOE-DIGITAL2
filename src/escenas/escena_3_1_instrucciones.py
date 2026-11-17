@@ -135,6 +135,8 @@ def mostrar():
                 # Guardar tiempo de inicio del examen
                 st.session_state['tiempo_inicio_examen'] = datetime.now()
                 st.session_state['examen_iniciado'] = True
+                from utils.progreso_examen import marcar_inicio
+                marcar_inicio(matricula)
             
             st.session_state['instrucciones_terminadas'] = True
             st.session_state['pagina'] = 'seleccion_a'
@@ -148,6 +150,8 @@ def mostrar():
         if not st.session_state['examen_iniciado']:
             st.session_state['tiempo_inicio_examen'] = datetime.now()
             st.session_state['examen_iniciado'] = True
+            from utils.progreso_examen import marcar_inicio
+            marcar_inicio(matricula)
         
         st.session_state['instrucciones_terminadas'] = True
         st.session_state['pagina'] = 'seleccion_a'

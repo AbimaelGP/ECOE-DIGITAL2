@@ -149,6 +149,13 @@ if not st.session_state['autenticado']:
 else:
     pagina = st.session_state.get('pagina', 'inicio_estudiante')
     
+    # Durante el examen del estudiante no se puede cerrar sesión (también oculta un botón "viejo"
+    # que Streamlit deja visible mientras la pantalla de instrucciones se recarga cada segundo)
+    from utils.progreso_examen import examen_en_curso
+    if examen_en_curso() and pagina != 'examen_final':
+        st.markdown("<style>.st-key-boton_cerrar_sesion_principal, .st-key-confirmar_si, .st-key-confirmar_no "
+                    "{display: none !important;}</style>", unsafe_allow_html=True)
+    
     if pagina == 'inicio_estudiante':
         escena_2_inicio_estudiante.mostrar()
     
@@ -226,6 +233,8 @@ else:
     else:
         st.write(f"Escena no implementada: {pagina}")
     
-    # Mostrar botón de cerrar sesión
-    mostrar_boton_cerrar_sesion()
+    # Mostrar botón de cerrar sesión (no durante el examen del estudiante)
+    from utils.progreso_examen import examen_en_curso
+    if not examen_en_curso():
+        mostrar_boton_cerrar_sesion()
     mostrar_footer()

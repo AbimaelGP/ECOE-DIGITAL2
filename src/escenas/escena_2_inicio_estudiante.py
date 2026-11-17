@@ -139,8 +139,23 @@ def mostrar():
         fecha_examen = dia.strftime("%d/%m/%Y")
         hora_inicio, hora_fin = h_ini.strftime("%H:%M"), h_fin.strftime("%H:%M")
         
+        # ¿Empezó el examen y se interrumpió (error, se cerró el navegador, etc.)? → puede retomarlo
+        from utils.progreso_examen import progreso_pendiente, restaurar, examen_terminado
+        if examen_terminado(matricula):
+            st.markdown("""
+            <div class="contenedor-examen">
+                <p style="color: #303442; font-size: 20px; font-weight: 500; margin: 0;">Ya concluiste tu examen.</p>
+                <p style="color: #626779; font-size: 15px; margin: 0.4rem 0 0 0;">Tus respuestas quedaron guardadas. ¡Gracias!</p>
+            </div>
+            """, unsafe_allow_html=True)
+            return
+        pendiente = progreso_pendiente(matricula)
+        if pendiente and estatus == 'Finalizado' and pendiente.get('_fuente') != 'tabla':
+            # Marcado como Finalizado y sin progreso guardado por esta versión: se respeta
+            pendiente = None
+        
         # ===== VALIDAR PERIODO Y ESTADO =====
-        if ahora >= fecha_hora_inicio and ahora <= fecha_hora_fin and estatus != 'Finalizado':
+        if ahora >= fecha_hora_inicio and ahora <= fecha_hora_fin and (estatus != 'Finalizado' or pendiente):
             
             # VALIDACIÓN: El administrador desactivó el examen
             if not examen_activo:
@@ -152,15 +167,24 @@ def mostrar():
                 """, unsafe_allow_html=True)
             else:
                 # Examen activo
-                st.markdown("""
-                <div class="contenedor-examen">
-                    <p style="color: #303442; font-size: 20px; font-weight: 500; margin: 0;">Tu examen está disponible ahora</p>
-                </div>
-                """, unsafe_allow_html=True)
+                if pendiente:
+                    st.markdown("""
+                    <div class="contenedor-examen">
+                        <p style="color: #303442; font-size: 20px; font-weight: 500; margin: 0;">Tu examen quedó en curso</p>
+                        <p style="color: #626779; font-size: 15px; margin: 0.4rem 0 0 0;">Puedes retomarlo donde te quedaste, con el tiempo que te quedaba.</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown("""
+                    <div class="contenedor-examen">
+                        <p style="color: #303442; font-size: 20px; font-weight: 500; margin: 0;">Tu examen está disponible ahora</p>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
                 col1, col2, col3 = st.columns([2, 1.2, 2])
                 with col2:
-                    if st.button("Iniciar examen", key="btn_iniciar_examen", use_container_width=True, type="primary"):
+                    if st.button("Retomar examen" if pendiente else "Iniciar examen", key="btn_iniciar_examen",
+                                 use_container_width=True, type="primary"):
                         st.session_state['popup_clave'] = True
                 
                 # Pop up de clave
@@ -180,8 +204,12 @@ def mostrar():
                                     elif clave_ingresada.strip() == str(contrasena_dia).strip():
                                         actualizar_estatus_estudiante(matricula, 'Iniciado')
                                         st.session_state['popup_clave'] = False
-                                        st.session_state['pagina'] = 'instrucciones'
-                                        actualizar_actividad_estudiante(matricula, "instrucciones")
+                                        if pendiente:
+                                            st.session_state['pagina'] = restaurar(matricula)
+                                            actualizar_actividad_estudiante(matricula, "Retomó el examen")
+                                        else:
+                                            st.session_state['pagina'] = 'instrucciones'
+                                            actualizar_actividad_estudiante(matricula, "instrucciones")
                                         st.rerun()
                                     else:
                                         st.error("Contraseña incorrecta")

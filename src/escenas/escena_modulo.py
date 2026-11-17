@@ -26,6 +26,13 @@ def mostrar_temporizador_flotante(modulo_seleccionado):
     if tiempo_restante < 0:
         tiempo_restante = 0
     
+    # Guardar el tiempo restante en la base (cada pocos segundos) para poder retomar tras un error
+    try:
+        from utils.progreso_examen import latido
+        latido(st.session_state.get('identificador'), modulo_seleccionado, tiempo_restante)
+    except Exception:
+        pass
+    
     minutos = int(tiempo_restante // 60)
     segundos = int(tiempo_restante % 60)
     
@@ -184,9 +191,11 @@ def mostrar():
     clave_tiempo_limite = f'tiempo_limite_modulo_{modulo_seleccionado}'
     clave_entrada = f'entrada_registrada_modulo_{modulo_seleccionado}'
     
+    from utils import progreso_examen
     if clave_tiempo_inicio not in st.session_state:
         st.session_state[clave_tiempo_inicio] = ahora_local()
         st.session_state[clave_tiempo_limite] = ahora_local() + timedelta(minutes=10)
+        progreso_examen.entrar_area(matricula, modulo_seleccionado, caso_paciente)
     
     tiempo_inicio = st.session_state[clave_tiempo_inicio]
     tiempo_limite = st.session_state[clave_tiempo_limite]
@@ -208,12 +217,16 @@ def mostrar():
         if 'modulos_completados' not in st.session_state:
             st.session_state['modulos_completados'] = {}
         st.session_state['modulos_completados'][modulo_seleccionado] = True
-        
-        actualizar_estatus_estudiante(matricula, 'Finalizado')
+        progreso_examen.terminar_area(matricula, modulo_seleccionado)
+        # (Antes aquí se marcaba todo el examen como 'Finalizado' al agotarse UNA área; ahora se
+        #  marca al terminar el examen completo, en la pantalla final.)
         
         st.session_state['pagina'] = 'seleccion_a'
         st.rerun()
         return
+    
+    # Guarda el tiempo restante para poder retomar si hay un error (cada pocos segundos)
+    progreso_examen.latido(matricula, modulo_seleccionado, tiempo_restante)
     
     # ===== DATOS VISIBLES =====
     datos_visibles = _aplicar_visibilidad_escena(info_caso)
@@ -411,6 +424,7 @@ def mostrar():
         with col_b:
             if st.button("Responder preguntas", key=f"dar_diagnostico_m{modulo_seleccionado}", use_container_width=True):
                 abrir_modal_diagnostico(escena_key, modulo_seleccionado)
+                progreso_examen.marcar_preguntas(matricula, True)
                 st.session_state['desplazar_a'] = 'panel-diagnostico'
                 st.rerun()
     
@@ -463,6 +477,7 @@ def mostrar():
         if 'modulos_completados' not in st.session_state:
             st.session_state['modulos_completados'] = {}
         st.session_state['modulos_completados'][modulo_seleccionado] = True
+        progreso_examen.terminar_area(matricula, modulo_seleccionado)
         
         st.session_state['pagina'] = 'seleccion_a'
         st.rerun()

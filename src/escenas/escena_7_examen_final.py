@@ -46,6 +46,11 @@ def mostrar():
     # ===== SI TODO ESTÁ COMPLETADO, MOSTRAR PANTALLA FINAL =====
     if not st.session_state.get('examen_finalizado', False):
         st.session_state['examen_finalizado'] = True
+        # Examen terminado: ya no se retoma y se marca como Finalizado
+        from utils.progreso_examen import finalizar
+        from utils.database import actualizar_estatus_estudiante
+        finalizar(matricula)
+        actualizar_estatus_estudiante(matricula, 'Finalizado')
     # Evaluación automática con el chatbot (una sola vez, en segundo plano)
     if not st.session_state.get('evaluacion_lanzada', False):
         from utils.evaluacion_automatica import lanzar_evaluacion
