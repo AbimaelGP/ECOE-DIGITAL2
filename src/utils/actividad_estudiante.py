@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime, timedelta
+from utils.horario import ahora as ahora_local
 from utils.supabase_client import supabase
 import uuid
 
@@ -11,7 +12,7 @@ def actualizar_actividad_estudiante(matricula, pantalla, modulo=None, estacion=N
     try:
         data = {
             "pantalla_actual": pantalla,
-            "hora_ultima_actividad": datetime.now().isoformat()
+            "hora_ultima_actividad": ahora_local().isoformat()
         }
         
         if modulo is not None:
@@ -60,7 +61,7 @@ def actualizar_actividad_estudiante(matricula, pantalla, modulo=None, estacion=N
             data["matricula"] = matricula
             data["estatus"] = "activo"
             data["session_id"] = session_id
-            data["hora_inicio_sesion"] = datetime.now().isoformat()
+            data["hora_inicio_sesion"] = ahora_local().isoformat()
             supabase.table("actividad_estudiante").insert(data).execute()
         
         return True
@@ -77,7 +78,7 @@ def limpiar_sesiones_antiguas(matricula):
         supabase.table("actividad_estudiante")\
             .update({
                 "estatus": "finalizado",
-                "hora_ultima_actividad": datetime.now().isoformat()
+                "hora_ultima_actividad": ahora_local().isoformat()
             })\
             .eq("matricula", matricula)\
             .eq("estatus", "activo")\
@@ -100,7 +101,7 @@ def finalizar_sesion_estudiante(matricula, session_id=None):
             supabase.table("actividad_estudiante")\
                 .update({
                     "estatus": "finalizado",
-                    "hora_ultima_actividad": datetime.now().isoformat()
+                    "hora_ultima_actividad": ahora_local().isoformat()
                 })\
                 .eq("matricula", matricula)\
                 .eq("session_id", session_id)\
@@ -110,7 +111,7 @@ def finalizar_sesion_estudiante(matricula, session_id=None):
             supabase.table("actividad_estudiante")\
                 .update({
                     "estatus": "finalizado",
-                    "hora_ultima_actividad": datetime.now().isoformat()
+                    "hora_ultima_actividad": ahora_local().isoformat()
                 })\
                 .eq("matricula", matricula)\
                 .eq("estatus", "activo")\
@@ -127,7 +128,7 @@ def limpiar_sesiones_inactivas(minutos=5):
         return False
     
     try:
-        limite_tiempo = (datetime.now() - timedelta(minutes=minutos)).isoformat()
+        limite_tiempo = (ahora_local() - timedelta(minutes=minutos)).isoformat()
         
         supabase.table("actividad_estudiante")\
             .update({"estatus": "finalizado"})\
@@ -145,8 +146,8 @@ def obtener_actividad_estudiantes():
         return []
     
     try:
-        hoy_str = datetime.now().strftime("%Y-%m-%d")
-        manana_str = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+        hoy_str = ahora_local().strftime("%Y-%m-%d")
+        manana_str = (ahora_local() + timedelta(days=1)).strftime("%Y-%m-%d")
         
         response = supabase.table("actividad_estudiante")\
             .select("*, perfiles_estudiantes(nombre_completo)")\

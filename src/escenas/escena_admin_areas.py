@@ -1,6 +1,7 @@
 # escenas/escena_admin_areas.py
 import streamlit as st
 from datetime import datetime, time
+from utils.horario import ahora as ahora_local, leer_fecha, leer_hora
 import pandas as pd
 import random
 import hashlib
@@ -301,23 +302,11 @@ def obtener_estudiantes_supabase():
 
 def _a_fecha(v):
     """Texto de la base → date (acepta 2026-11-20, 20/11/2026, 20-11-2026)."""
-    from datetime import datetime, date
-    if isinstance(v, date): return v
-    t = _celda(v)
-    for f in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
-        try: return datetime.strptime(t, f).date()
-        except Exception: pass
-    return None
+    return leer_fecha(_celda(v) if not hasattr(v, "year") else v)
 
 def _a_hora(v):
-    """Texto de la base → time (acepta 08:00, 8:00, 08:00:00)."""
-    from datetime import datetime, time
-    if isinstance(v, time): return v
-    t = _celda(v)
-    for f in ("%H:%M", "%H:%M:%S"):
-        try: return datetime.strptime(t, f).time()
-        except Exception: pass
-    return None
+    """Texto de la base → time (acepta 08:00, 8:00, 7, 7am…)."""
+    return leer_hora(_celda(v) if not hasattr(v, "hour") else v)
 
 def _valor_guardable(campo, v):
     """Lo que se guarda en la base: fecha YYYY-MM-DD, hora HH:MM, vacío = None (nunca NaN)."""
@@ -347,7 +336,7 @@ def eliminar_estudiante_supabase(matricula):
         return False, f"Error: {str(e)}"
 
 def generar_nombre_archivo_estudiantes():
-    ahora = datetime.now()
+    ahora = ahora_local()
     sufijo = "a" if 1 <= ahora.month <= 6 else "b"
     return f"estudiantes-ecoe-{ahora.year}-{sufijo}.xlsx"
 
@@ -540,10 +529,10 @@ def mostrar():
     
     col_inicio, col_fin = st.columns(2)
     with col_inicio:
-        st.date_input("Fecha de inicio", value=datetime.now(), key="fecha_inicio", format="DD/MM/YYYY")
+        st.date_input("Fecha de inicio", value=ahora_local(), key="fecha_inicio", format="DD/MM/YYYY")
         st.selectbox("Hora de inicio", options=horas_opciones, index=8, key="hora_inicio", format_func=lambda x: x.strftime("%I:%M %p"))
     with col_fin:
-        st.date_input("Fecha de término", value=datetime.now(), key="fecha_fin", format="DD/MM/YYYY")
+        st.date_input("Fecha de término", value=ahora_local(), key="fecha_fin", format="DD/MM/YYYY")
         st.selectbox("Hora de término", options=horas_opciones, index=32, key="hora_fin", format_func=lambda x: x.strftime("%I:%M %p"))
     
     col_activar, col_monitoreo = st.columns(2)
@@ -556,13 +545,13 @@ def mostrar():
         
         if st.button("Activar", use_container_width=True, key="btn_activar"):
             try:
-                supabase.table("configuracion_examen").update({"examen_activo": True, "actualizado_por": st.session_state.get('identificador', 'admin'), "ultima_actualizacion": datetime.now().isoformat()}).eq("id", 1).execute()
+                supabase.table("configuracion_examen").update({"examen_activo": True, "actualizado_por": st.session_state.get('identificador', 'admin'), "ultima_actualizacion": ahora_local().isoformat()}).eq("id", 1).execute()
                 st.session_state['examen_activo'] = True; st.success("Examen activado"); st.rerun()
             except Exception as e: st.error(f"Error: {e}")
         
         if st.button("Desactivar", use_container_width=True, key="btn_desactivar"):
             try:
-                supabase.table("configuracion_examen").update({"examen_activo": False, "actualizado_por": st.session_state.get('identificador', 'admin'), "ultima_actualizacion": datetime.now().isoformat()}).eq("id", 1).execute()
+                supabase.table("configuracion_examen").update({"examen_activo": False, "actualizado_por": st.session_state.get('identificador', 'admin'), "ultima_actualizacion": ahora_local().isoformat()}).eq("id", 1).execute()
                 st.session_state['examen_activo'] = False; st.warning("Examen desactivado"); st.rerun()
             except Exception as e: st.error(f"Error: {e}")
     

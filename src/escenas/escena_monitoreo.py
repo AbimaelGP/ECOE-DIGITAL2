@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from utils.actividad_estudiante import obtener_actividad_estudiantes, limpiar_sesiones_inactivas
 from datetime import datetime
+from utils.horario import ahora as ahora_local
 import time
 
 def mostrar():
@@ -70,8 +71,8 @@ def mostrar():
         st.session_state.ultima_actualizacion = time.time()
     
     # Formatear la hora de la última actualización
-    hora_ultima_act = datetime.fromtimestamp(st.session_state.ultima_actualizacion).strftime('%H:%M:%S')
-    st.caption(f"**Fecha:** {datetime.now().strftime('%d/%m/%Y')} | **Última actualización:** {hora_ultima_act}")
+    hora_ultima_act = datetime.fromtimestamp(st.session_state.ultima_actualizacion, tz=__import__('utils.horario', fromlist=['_zona'])._zona()).strftime('%H:%M:%S')
+    st.caption(f"**Fecha:** {ahora_local().strftime('%d/%m/%Y')} | **Última actualización:** {hora_ultima_act}")
     
     # Limpiamos sesiones inactivas (opcional, cierra sesiones fantasma después de 5 min)
     limpiar_sesiones_inactivas(5)
@@ -151,7 +152,7 @@ def mostrar():
         st.markdown(f"**ID:** {st.session_state.get('identificador', '')}")
         st.markdown("---")
         st.markdown("**Actualización automática:** Cada 15 segundos")
-        st.markdown(f"**Fecha:** {datetime.now().strftime('%d/%m/%Y')}")
+        st.markdown(f"**Fecha:** {ahora_local().strftime('%d/%m/%Y')}")
         
         if st.button("Cerrar sesion", use_container_width=True):
             for key in ['autenticado', 'tipo_usuario', 'identificador', 'nombre', 'permisos', 'pagina', 'session_id']:

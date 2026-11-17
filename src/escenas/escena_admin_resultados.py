@@ -1,6 +1,7 @@
 # escenas/escena_admin_resultados.py
 import streamlit as st
 from datetime import datetime
+from utils.horario import ahora as ahora_local
 import pandas as pd
 import io
 from utils.supabase_client import supabase
@@ -158,12 +159,12 @@ def obtener_estadisticas_completas():
     }
 
 def generar_nombre_archivo_resultados():
-    ahora = datetime.now()
+    ahora = ahora_local()
     sufijo = "a" if 1 <= ahora.month <= 6 else "b"
     return f"resultados-ecoe-{ahora.year}-{sufijo}.xlsx"
 
 def generar_nombre_archivo_estadisticas():
-    ahora = datetime.now()
+    ahora = ahora_local()
     sufijo = "a" if 1 <= ahora.month <= 6 else "b"
     return f"estadisticas-ecoe-{ahora.year}-{sufijo}.xlsx"
 

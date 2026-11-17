@@ -1,6 +1,7 @@
 # escenas/escena_2_inicio_estudiante.py
 import streamlit as st
 from datetime import datetime
+from utils.horario import ahora as ahora_local, leer_fecha, leer_hora
 import base64
 from pathlib import Path
 from utils.database import obtener_datos_estudiante, actualizar_estatus_estudiante
@@ -113,30 +114,29 @@ def mostrar():
         clave_acceso = datos.get('clave_acceso', '')
         estatus = datos.get('estatus', 'Pendiente')
         
-        ahora = datetime.now()
+        # Hora local (America/Chihuahua por defecto), no la del servidor (UTC)
+        ahora = ahora_local()
         
-        # ===== PARSEAR FECHA Y HORA =====
-        fecha_hora_inicio = None
-        fecha_hora_fin = None
+        # ===== LEER FECHA Y HORARIO (acepta '2026-11-17', '17/11/2026', '7', '7:00', '07:00') =====
+        dia = leer_fecha(fecha_examen)
+        h_ini = leer_hora(hora_inicio)
+        h_fin = leer_hora(hora_fin)
         
-        formatos_fecha = ["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]
-        formatos_hora = ["%H:%M", "%H:%M:%S"]
-        
-        for fmt_fecha in formatos_fecha:
-            for fmt_hora in formatos_hora:
-                try:
-                    fecha_hora_inicio = datetime.strptime(f"{fecha_examen} {hora_inicio}", f"{fmt_fecha} {fmt_hora}")
-                    fecha_hora_fin = datetime.strptime(f"{fecha_examen} {hora_fin}", f"{fmt_fecha} {fmt_hora}")
-                    break
-                except:
-                    continue
-            if fecha_hora_inicio:
-                break
-        
-        # Si no se pudo parsear, mostrar error
-        if not fecha_hora_inicio:
-            st.error(f"No se pudo interpretar la fecha del examen: '{fecha_examen}' '{hora_inicio}'")
+        faltantes = [nombre_campo for nombre_campo, valor in
+                     (("fecha del examen", dia), ("hora de inicio", h_ini), ("hora de fin", h_fin)) if valor is None]
+        if faltantes:
+            st.warning("Tu horario de examen aún no está completo (falta: " + ", ".join(faltantes) + "). "
+                       "Avisa a la coordinación para que lo registre.")
             return
+        
+        fecha_hora_inicio = datetime.combine(dia, h_ini)
+        fecha_hora_fin = datetime.combine(dia, h_fin)
+        if fecha_hora_fin <= fecha_hora_inicio:
+            st.warning("La hora de fin de tu examen es anterior a la de inicio. Avisa a la coordinación.")
+            return
+        # Lo que se muestra al estudiante, en formato uniforme
+        fecha_examen = dia.strftime("%d/%m/%Y")
+        hora_inicio, hora_fin = h_ini.strftime("%H:%M"), h_fin.strftime("%H:%M")
         
         # ===== VALIDAR PERIODO Y ESTADO =====
         if ahora >= fecha_hora_inicio and ahora <= fecha_hora_fin and estatus != 'Finalizado':

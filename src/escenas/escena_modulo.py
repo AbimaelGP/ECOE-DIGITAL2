@@ -4,6 +4,7 @@ from utils.database import obtener_datos_estudiante, actualizar_estatus_estudian
 from utils.casos import cargar_info_caso, obtener_sprite_url
 from utils.actividad_estudiante import actualizar_actividad_estudiante
 from datetime import datetime, timedelta
+from utils.horario import ahora as ahora_local
 from utils.supabase_client import SUPABASE_URL
 
 
@@ -19,7 +20,7 @@ def mostrar_temporizador_flotante(modulo_seleccionado):
         return
     
     tiempo_limite = st.session_state[clave_limite]
-    ahora = datetime.now()
+    ahora = ahora_local()
     tiempo_restante = (tiempo_limite - ahora).total_seconds()
     
     if tiempo_restante < 0:
@@ -184,12 +185,12 @@ def mostrar():
     clave_entrada = f'entrada_registrada_modulo_{modulo_seleccionado}'
     
     if clave_tiempo_inicio not in st.session_state:
-        st.session_state[clave_tiempo_inicio] = datetime.now()
-        st.session_state[clave_tiempo_limite] = datetime.now() + timedelta(minutes=10)
+        st.session_state[clave_tiempo_inicio] = ahora_local()
+        st.session_state[clave_tiempo_limite] = ahora_local() + timedelta(minutes=10)
     
     tiempo_inicio = st.session_state[clave_tiempo_inicio]
     tiempo_limite = st.session_state[clave_tiempo_limite]
-    ahora = datetime.now()
+    ahora = ahora_local()
     
     # ===== VALIDACIÓN DE TIEMPO AGOTADO =====
     tiempo_restante = (tiempo_limite - ahora).total_seconds()
@@ -336,12 +337,12 @@ def mostrar():
                 enviar = st.form_submit_button("Enviar")
             
             if enviar and pregunta:
-                if (tiempo_limite - datetime.now()).total_seconds() <= 0:
+                if (tiempo_limite - ahora_local()).total_seconds() <= 0:
                     st.error("El tiempo del área ha expirado. Serás redirigido al inicio.")
                     st.session_state['pagina'] = 'inicio_estudiante'
                     st.rerun()
                 
-                st.session_state[chat_key].append({"role": "user", "content": pregunta, "hora": datetime.now().isoformat()})
+                st.session_state[chat_key].append({"role": "user", "content": pregunta, "hora": ahora_local().isoformat()})
                 
                 from chatbot.adaptador_bot import responder_como_paciente
                 from chatbot.prompt_constructor import crear_prompt_paciente
@@ -364,7 +365,7 @@ def mostrar():
                 
                 respuesta = responder_como_paciente(pregunta, prompt, historial_para_ia)
                 
-                st.session_state[chat_key].append({"role": "assistant", "content": respuesta, "hora": datetime.now().isoformat()})
+                st.session_state[chat_key].append({"role": "assistant", "content": respuesta, "hora": ahora_local().isoformat()})
                 
                 try:
                     from utils.voz_paciente import generar_audio_paciente
@@ -427,7 +428,7 @@ def mostrar():
     if st.session_state.get('terminar_modulo_despues_diagnostico', False):
         st.session_state['terminar_modulo_despues_diagnostico'] = False
         
-        ahora_verificacion = datetime.now()
+        ahora_verificacion = ahora_local()
         termino_fuera_tiempo = ahora_verificacion >= tiempo_limite
         
         from utils.guardar_historial import guardar_historial_chat

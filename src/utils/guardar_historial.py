@@ -2,6 +2,7 @@
 import streamlit as st
 from utils.supabase_client import supabase
 from datetime import datetime
+from utils.horario import ahora as ahora_local
 import json
 
 def guardar_historial_chat(matricula, modulo, clave_caso):
@@ -33,7 +34,7 @@ def guardar_historial_chat(matricula, modulo, clave_caso):
             supabase.table("historial_chat_estudiante") \
                 .update({
                     "mensajes": historial_chat_json,
-                    "updated_at": datetime.now().isoformat()
+                    "updated_at": ahora_local().isoformat()
                 }) \
                 .eq("matricula", matricula) \
                 .eq("modulo", modulo) \
@@ -70,7 +71,7 @@ def guardar_historial_preguntas(matricula, modulo, clave_caso, respuestas_diagno
     try:
         # 1. Estructurar la nueva respuesta
         nueva_respuesta = {
-            "fecha": datetime.now().isoformat(),
+            "fecha": ahora_local().isoformat(),
             "respuestas": respuestas_diagnostico
         }
         
@@ -104,7 +105,7 @@ def guardar_historial_preguntas(matricula, modulo, clave_caso, respuestas_diagno
             supabase.table("historial_preguntas_estudiante") \
                 .update({
                     "respuestas": respuestas_actuales,
-                    "updated_at": datetime.now().isoformat()
+                    "updated_at": ahora_local().isoformat()
                 }) \
                 .eq("matricula", matricula) \
                 .eq("modulo", modulo) \
@@ -207,7 +208,7 @@ def limpiar_historial_chat(matricula, modulo, clave_caso):
         supabase.table("historial_chat_estudiante") \
             .update({
                 "mensajes": [],
-                "updated_at": datetime.now().isoformat()
+                "updated_at": ahora_local().isoformat()
             }) \
             .eq("matricula", matricula) \
             .eq("modulo", modulo) \
@@ -231,7 +232,7 @@ def guardar_estudios_solicitados(matricula, modulo, clave_caso, estudios):
         if r.data:
             supabase.table("historial_chat_estudiante").update({
                 "estudios_solicitados": list(estudios),
-                "updated_at": datetime.now().isoformat(),
+                "updated_at": ahora_local().isoformat(),
             }).eq("id", r.data[0]["id"]).execute()
         else:
             supabase.table("historial_chat_estudiante").insert({
