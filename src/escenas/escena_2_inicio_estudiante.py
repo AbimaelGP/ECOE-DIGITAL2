@@ -2,6 +2,7 @@
 import streamlit as st
 from datetime import datetime
 from utils.horario import ahora as ahora_local, leer_fecha, leer_hora
+from utils.acceso_examen import obtener_contrasena_dia
 import base64
 from pathlib import Path
 from utils.database import obtener_datos_estudiante, actualizar_estatus_estudiante
@@ -166,21 +167,24 @@ def mostrar():
                 if st.session_state.get('popup_clave', False):
                     col1, col2, col3 = st.columns([2, 1.1, 2])
                     with col2:
-                        with st.popover("Ingresa tu clave de acceso"):
-                            st.markdown("Para comenzar, ingresa la clave proporcionada por tu asesor.")
-                            clave_ingresada = st.text_input("Clave de acceso", type="password", key="input_clave_examen")
+                        with st.popover("Ingresa la contraseña del examen"):
+                            st.markdown("Para comenzar, ingresa la contraseña del examen que te dará el aplicador en el salón.")
+                            clave_ingresada = st.text_input("Contraseña del examen", type="password", key="input_clave_examen")
+                            contrasena_dia = obtener_contrasena_dia(dia)
                             
                             col_a, col_b = st.columns(2)
                             with col_a:
                                 if st.button("Confirmar", key="btn_confirmar_clave", use_container_width=True):
-                                    if clave_ingresada == clave_acceso:
+                                    if not contrasena_dia:
+                                        st.error("La coordinación aún no ha definido la contraseña de este examen.")
+                                    elif clave_ingresada.strip() == str(contrasena_dia).strip():
                                         actualizar_estatus_estudiante(matricula, 'Iniciado')
                                         st.session_state['popup_clave'] = False
                                         st.session_state['pagina'] = 'instrucciones'
                                         actualizar_actividad_estudiante(matricula, "instrucciones")
                                         st.rerun()
                                     else:
-                                        st.error("Clave incorrecta")
+                                        st.error("Contraseña incorrecta")
                             with col_b:
                                 if st.button("Cancelar", key="btn_cancelar_clave", use_container_width=True):
                                     st.session_state['popup_clave'] = False

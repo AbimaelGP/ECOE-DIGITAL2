@@ -409,7 +409,7 @@ def mostrar():
                 st.session_state['desplazar_a'] = 'panel-estudios'
                 st.rerun()
         with col_b:
-            if st.button("Dar Diagnóstico", key=f"dar_diagnostico_m{modulo_seleccionado}", use_container_width=True):
+            if st.button("Responder preguntas", key=f"dar_diagnostico_m{modulo_seleccionado}", use_container_width=True):
                 abrir_modal_diagnostico(escena_key, modulo_seleccionado)
                 st.session_state['desplazar_a'] = 'panel-diagnostico'
                 st.rerun()

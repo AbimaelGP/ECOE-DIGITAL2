@@ -31,10 +31,25 @@ def verificar_credenciales_supabase(identificador, password):
     password_hash = hashlib.sha256(password.encode()).hexdigest()
     
     try:
-        response = supabase.table("usuarios").select("*").eq("identificador", identificador).eq("password_hash", password_hash).execute()
+        response = supabase.table("usuarios").select("*").eq("identificador", identificador).execute()
+        if not response.data:
+            return None
+        usuario = response.data[0]
         
-        if response.data and len(response.data) > 0:
-            usuario = response.data[0]
+        if usuario.get('tipo_usuario') == 'estudiante':
+            # Estudiantes: entran con su CLAVE DE ACCESO personal (columna "Clave Acceso").
+            perfil = supabase.table("perfiles_estudiantes").select("clave_acceso").eq("matricula", identificador).execute()
+            clave = str((perfil.data or [{}])[0].get("clave_acceso") or "").strip()
+            if clave:
+                valido = password.strip() == clave
+            else:
+                # Sin clave de acceso asignada: se acepta la contraseña registrada
+                valido = usuario.get('password_hash') == password_hash
+        else:
+            # Médicos y administradores: su contraseña de siempre
+            valido = usuario.get('password_hash') == password_hash
+        
+        if valido:
             return (usuario['tipo_usuario'], usuario['nombre'], usuario.get('permisos'))
         return None
     except Exception as e:
@@ -161,7 +176,8 @@ def mostrar():
         
         with st.form("login_form"):
             identificador = st.text_input("Matrícula", placeholder="Ingresa tu matrícula")
-            password = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña")
+            password = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña",
+                                     help="Estudiantes: usa tu clave de acceso.")
             
             if st.form_submit_button("Continuar", use_container_width=True):
                 if identificador and password:

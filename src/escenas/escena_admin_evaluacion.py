@@ -7,6 +7,7 @@ from datetime import datetime
 from utils.supabase_client import supabase
 from utils.evaluador_batch import evaluar_estudiante_completo
 from utils.casos import formatear_fecha_inteligente
+from utils.horario import leer_fecha
 
 def subir_pdf_a_supabase(ruta_local, matricula, circuito_nombre):
     """Sube el PDF al Storage y guarda el registro en la base de datos."""
@@ -120,10 +121,13 @@ def mostrar():
         cols[0].markdown(f'<div class="texto-tabla-normal">{matricula}</div>', unsafe_allow_html=True)
         cols[1].markdown(f'<div class="texto-tabla-normal">{nombre}</div>', unsafe_allow_html=True)
         cols[2].markdown(f'<div class="texto-tabla-normal">{circuito_nombre or "—"}</div>', unsafe_allow_html=True)
-        cols[3].markdown(f'<div class="texto-tabla-normal">{formatear_fecha_inteligente(est.get("fecha_examen", ""))}</div>', unsafe_allow_html=True)
+        # fecha_examen es una fecha (sin hora): se muestra tal cual, sin convertir de zona horaria
+        _dia = leer_fecha(est.get("fecha_examen"))
+        cols[3].markdown(f'<div class="texto-tabla-normal">{_dia.strftime("%d/%m/%Y") if _dia else "—"}</div>', unsafe_allow_html=True)
         
         # 2. Calcular Estatus del Examen
-        completadas = 0
+        completadas = 0      # estaciones con respuestas guardadas ("Guardar y Terminar")
+        intentadas = 0       # estaciones con chat o respuestas (p. ej. se le acabó el tiempo)
         total_casos = 0
         
         if circuito_nombre in circuitos_dict:
@@ -140,8 +144,10 @@ def mostrar():
                 res_chat = supabase.table("historial_chat_estudiante").select("id").eq("matricula", matricula).eq("caso", caso).execute()
                 res_preg = supabase.table("historial_preguntas_estudiante").select("id").eq("matricula", matricula).eq("caso", caso).execute()
                 
-                if res_chat.data and res_preg.data:
+                if res_preg.data:
                     completadas += 1
+                if res_chat.data or res_preg.data:
+                    intentadas += 1
 
         # 3. Columna de Estatus
         with cols[4]:
@@ -151,6 +157,8 @@ def mostrar():
                 st.markdown('<div class="badge-estatus-listo">Completado 100%</div>', unsafe_allow_html=True)
             else:
                 st.markdown(f'<div class="badge-estatus">Completado {completadas}/{total_casos}</div>', unsafe_allow_html=True)
+                if intentadas > completadas:
+                    st.caption(f"{intentadas - completadas} estación(es) sin respuestas guardadas")
 
         # 4. Columna de Descarga / Carga
         url_pdf_existente = evaluaciones_dict.get(matricula)
@@ -167,14 +175,24 @@ def mostrar():
 
         # 5. Columna de Acción (Botón Evaluar)
         with cols[6]:
+            # Se puede evaluar cuando el estudiante ya pasó por TODAS sus estaciones
+            # (aunque en alguna no haya guardado respuestas porque se le acabó el tiempo)
             disabled_eval = (
                 bool(url_pdf_existente) 
-                or (completadas < total_casos) 
+                or (intentadas < total_casos) 
                 or (total_casos == 0)
                 or evaluando_ahora # 👈 Deshabilitar el botón mientras se procesa
             )
+            if url_pdf_existente:
+                ayuda = "Ya tiene evaluación en PDF"
+            elif total_casos == 0:
+                ayuda = "El estudiante no tiene circuito con estaciones"
+            elif intentadas < total_casos:
+                ayuda = f"Se habilita cuando el estudiante pase por todas sus estaciones ({intentadas}/{total_casos})"
+            else:
+                ayuda = "Genera la evaluación del chatbot (PDF)"
             
-            if st.button("Evaluar", key=f"eval_{matricula}", disabled=disabled_eval, use_container_width=True):
+            if st.button("Evaluar", key=f"eval_{matricula}", disabled=disabled_eval, use_container_width=True, help=ayuda):
                 st.session_state[f"evaluando_{matricula}"] = True
                 st.rerun()
 

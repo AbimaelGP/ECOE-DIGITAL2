@@ -272,8 +272,9 @@ def _celda(valor):
 
 def crear_estudiante_supabase(matricula, nombre_completo, contraseña, creado_por):
     if not supabase: return False, "Supabase no conectado", None
-    password_hash = hashlib.sha256(contraseña.encode()).hexdigest()
     clave_acceso = generar_clave_acceso()
+    # El estudiante entra con su clave de acceso; si no se da contraseña, se usa la misma clave
+    password_hash = hashlib.sha256((contraseña or clave_acceso).encode()).hexdigest()
     try:
         supabase.table("usuarios").insert({"identificador": matricula, "nombre": nombre_completo, "tipo_usuario": "estudiante", "password_hash": password_hash}).execute()
         supabase.table("perfiles_estudiantes").insert({"matricula": matricula, "nombre_completo": nombre_completo, "clave_acceso": clave_acceso, "creado_por": creado_por}).execute()
@@ -445,26 +446,26 @@ def mostrar():
                 matricula_nueva = st.text_input("Matrícula *", placeholder="Ej: 20250001")
                 nombre_nuevo = st.text_input("Nombre completo *", placeholder="Ej: Juan Pérez Gómez")
             with col2:
-                contraseña_nueva = st.text_input("Contraseña *", type="password", placeholder="Mínimo 6 caracteres")
-                confirmar_contraseña = st.text_input("Confirmar contraseña *", type="password", placeholder="Repite la contraseña")
+                st.caption("La app genera una **clave de acceso** de 6 dígitos: es con la que el estudiante "
+                           "entra a la app. La verás en la tabla, columna \"Clave Acceso\".")
             
             creado_por = st.session_state.get('identificador', 'admin')
             submitted = st.form_submit_button("Crear Estudiante", use_container_width=True)
             
             if submitted:
-                if not matricula_nueva or not nombre_nuevo or not contraseña_nueva:
+                if not matricula_nueva or not nombre_nuevo:
                     st.error("Por favor completa todos los campos obligatorios")
-                elif contraseña_nueva != confirmar_contraseña: st.error("Las contraseñas no coinciden")
-                elif len(contraseña_nueva) < 6: st.error("La contraseña debe tener al menos 6 caracteres")
                 else:
-                    exito, mensaje, clave = crear_estudiante_supabase(matricula_nueva, nombre_nuevo, contraseña_nueva, creado_por)
-                    if exito: st.success(mensaje); st.info(f"Clave de acceso generada: **{clave}**"); st.rerun()
+                    exito, mensaje, clave = crear_estudiante_supabase(matricula_nueva.strip(), nombre_nuevo.strip(), "", creado_por)
+                    if exito:
+                        st.success(f"{mensaje}. Clave de acceso para entrar: **{clave}**")
                     else: st.error(mensaje)
     
     # --- PESTAÑA IMPORTAR/EXPORTAR ---
     with tab_importar:
         st.markdown("### Importar Estudiantes desde Excel")
-        st.caption("Formato requerido: Columnas 'matrícula', 'nombre', 'contraseña'")
+        st.caption("Formato requerido: columnas 'matricula' y 'nombre'. La columna 'contraseña' es opcional: "
+                   "cada estudiante entra con la clave de acceso que genera la app.")
         archivo_excel = st.file_uploader("Subir archivo Excel", type=['xlsx', 'xls'], key="upload_estudiantes_masivo")
         
         if archivo_excel:
@@ -481,7 +482,7 @@ def mostrar():
                         contraseña = _celda(row.get('contraseña'))
                         if not (matricula or nombre or contraseña):
                             continue  # fila vacía
-                        if matricula and nombre and contraseña:
+                        if matricula and nombre:
                             exito, _, _ = crear_estudiante_supabase(matricula, nombre, contraseña, creado_por)
                             if exito: exitos += 1
                             else: errores += 1
@@ -521,7 +522,22 @@ def mostrar():
     horas_opciones = [time(h, m) for h in range(5, 19) for m in [0, 15, 30, 45]]
     
     col_pass, col_min = st.columns(2)
-    with col_pass: st.text_input("Contraseña de examen", type="password", placeholder="Ingresa la contraseña", key="pass_examen")
+    with col_pass:
+        from utils.acceso_examen import obtener_contrasena_dia, guardar_contrasena_dia, listar_contrasenas
+        st.markdown("**Contraseña del examen (por día)**")
+        st.caption("La misma para todos los estudiantes con examen ese día. Se pide al dar \"Iniciar examen\"; "
+                   "para entrar a la app cada estudiante usa su clave de acceso.")
+        dia_pass = st.date_input("Día del examen", value=ahora_local().date(), key="dia_pass_examen", format="DD/MM/YYYY")
+        actual = obtener_contrasena_dia(dia_pass)
+        nueva_pass = st.text_input("Contraseña de examen", value=actual or "", placeholder="Ej. ECOE-1711",
+                                   key=f"pass_examen_{dia_pass}")
+        if st.button("Guardar contraseña del día", key="btn_guardar_pass_dia", use_container_width=True):
+            ok, msg = guardar_contrasena_dia(dia_pass, nueva_pass, st.session_state.get("identificador", "admin"))
+            (st.success if ok else st.error)(msg)
+        registradas = listar_contrasenas(5)
+        if registradas:
+            st.caption("Configuradas: " + " · ".join(
+                f"{leer_fecha(r['fecha']).strftime('%d/%m/%Y')}: {r['contrasena']}" for r in registradas))
     with col_min:
         from utils.evaluacion_dual import obtener_calificacion_minima, guardar_calificacion_minima
         if "calif_minima" not in st.session_state:
@@ -549,13 +565,9 @@ def mostrar():
             tipo, msg = st.session_state.pop("msg_calif_minima")
             (st.success if tipo == "success" else st.error)(msg)
     
-    col_inicio, col_fin = st.columns(2)
-    with col_inicio:
-        st.date_input("Fecha de inicio", value=ahora_local(), key="fecha_inicio", format="DD/MM/YYYY")
-        st.selectbox("Hora de inicio", options=horas_opciones, index=8, key="hora_inicio", format_func=lambda x: x.strftime("%I:%M %p"))
-    with col_fin:
-        st.date_input("Fecha de término", value=ahora_local(), key="fecha_fin", format="DD/MM/YYYY")
-        st.selectbox("Hora de término", options=horas_opciones, index=32, key="hora_fin", format_func=lambda x: x.strftime("%I:%M %p"))
+    # (Se quitaron "Fecha/Hora de inicio y término": no se guardaban ni controlaban nada.
+    #  El horario que cuenta es el de cada estudiante en la tabla de estudiantes.)
+    st.caption("El horario de cada estudiante se define en la tabla **Lista de Estudiantes** (Fecha Examen, Hora Inicio, Hora Fin).")
     
     col_activar, col_monitoreo = st.columns(2)
     with col_activar:
