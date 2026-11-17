@@ -50,23 +50,33 @@ def leer_fecha(valor):
 
 
 def leer_hora(valor):
-    """Acepta time, '08:00', '8:00', '08:00:00', '7', '7.30', '7am', '2 pm', '0730'. Devuelve time o None."""
+    """Acepta time, datetime, '08:00', '8:00', '08:00:00', '14:30:00.000', '1970-01-01 14:30:00',
+    '7', '7.30', '7am', '2 pm', '0730'. Devuelve time o None."""
+    if isinstance(valor, datetime):            # también pandas.Timestamp
+        return valor.time().replace(second=0, microsecond=0)
     if isinstance(valor, time):
         return valor.replace(second=0, microsecond=0)
-    texto = str(valor or "").strip().lower().replace(" ", "").replace(".", ":")
+    texto = str(valor or "").strip().lower()
     if not texto or texto in ("none", "nan", "nat"):
         return None
-    pm = texto.endswith(("pm", "p:m:"))
-    am = texto.endswith(("am", "a:m:"))
-    texto = re.sub(r"(a|p):?m:?$", "", texto)
-    m = re.fullmatch(r"(\d{1,2})(?::(\d{2}))?(?::\d{2})?", texto) or re.fullmatch(r"(\d{2})(\d{2})", texto)
+    pm = bool(re.search(r"p\.?\s*m\.?$", texto))
+    am = bool(re.search(r"a\.?\s*m\.?$", texto))
+
+    def armar(h, mi):
+        if pm and h < 12:
+            h += 12
+        if am and h == 12:
+            h = 0
+        return time(h, mi) if 0 <= h <= 23 and 0 <= mi <= 59 else None
+
+    # 1) Hay "HH:MM" en algún lugar (p. ej. '14:30:00.000' o '1970-01-01 14:30:00'): usar la última
+    pares = re.findall(r"(\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?", texto)
+    if pares:
+        h, mi = pares[-1]
+        return armar(int(h), int(mi))
+    # 2) Formatos cortos: '7', '7.30', '7am', '0730'
+    corto = re.sub(r"[ap]\.?\s*m\.?$", "", texto).replace(" ", "")
+    m = re.fullmatch(r"(\d{1,2})(?:[.,](\d{2}))?", corto) or re.fullmatch(r"(\d{2})(\d{2})", corto)
     if not m:
         return None
-    h, mi = int(m.group(1)), int(m.group(2) or 0)
-    if pm and h < 12:
-        h += 12
-    if am and h == 12:
-        h = 0
-    if 0 <= h <= 23 and 0 <= mi <= 59:
-        return time(h, mi)
-    return None
+    return armar(int(m.group(1)), int(m.group(2) or 0))

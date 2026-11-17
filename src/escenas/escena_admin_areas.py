@@ -402,6 +402,8 @@ def mostrar():
             )
             
             col_guardar1, col_guardar2 = st.columns([1, 3])
+            if st.session_state.get("msg_tabla_estudiantes"):
+                col_guardar2.success(st.session_state.pop("msg_tabla_estudiantes"))
             with col_guardar1:
                 if st.button("Guardar cambios", use_container_width=True, key="btn_guardar_cambios"):
                     cambios_realizados = False
@@ -420,7 +422,7 @@ def mostrar():
                     if errores:
                         for error in errores: st.error(f"{error}")
                     if cambios_realizados and not errores:
-                        st.success("Cambios guardados correctamente"); st.rerun()
+                        st.session_state["msg_tabla_estudiantes"] = "Cambios guardados correctamente"; st.rerun()
                     elif not cambios_realizados: st.info("No se detectaron cambios")
             
             st.markdown("---")
