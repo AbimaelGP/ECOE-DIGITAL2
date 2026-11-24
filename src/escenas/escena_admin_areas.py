@@ -327,14 +327,95 @@ def actualizar_campo_estudiante_supabase(matricula, campo, valor):
     except Exception as e:
         return False, f"Error: {str(e)}"
 
+# Orden de borrado (de "hijas" a "padre") porque NO hay ON DELETE CASCADE en Supabase.
+# (tabla, columna con la matrícula, obligatoria)
+#   obligatoria=True  → si falla, se detiene el borrado para no dejar datos a medias.
+#   obligatoria=False → tablas de migraciones opcionales; si no existen se omiten.
+TABLAS_ESTUDIANTE = [
+    ("historial_chat_estudiante",      "matricula",     True),
+    ("historial_preguntas_estudiante", "matricula",     True),
+    ("evaluaciones_pdf",               "matricula",     True),
+    ("actividad_estudiante",           "matricula",     False),
+    ("progreso_examen",                "matricula",     False),
+    ("evaluacion_estudiantes",         "matricula",     False),
+    ("evaluacion_docente",             "matricula",     False),
+    ("evaluacion_chatbot",             "matricula",     False),
+    ("calificacion_final",             "matricula",     False),
+    ("reportes_chatbot",               "matricula",     False),
+    ("perfiles_estudiantes",           "matricula",     True),
+    ("usuarios",                       "identificador", True),
+]
+
+
+def obtener_datos_respaldo_estudiante(matricula):
+    """Lee todos los registros del estudiante en cada tabla (para el respaldo)."""
+    datos = {}
+    for tabla, columna, _ in TABLAS_ESTUDIANTE:
+        try:
+            filas = supabase.table(tabla).select("*").eq(columna, matricula).execute().data or []
+        except Exception as e:
+            print(f"⚠️ Respaldo: no se pudo leer {tabla}: {e}")
+            filas = []
+        if tabla == "usuarios":
+            # Nunca exportar el hash de la contraseña
+            filas = [{k: v for k, v in f.items() if k != "password_hash"} for f in filas]
+        datos[tabla] = filas
+    return datos
+
+
+def generar_respaldo_estudiante_zip(matricula):
+    """ZIP con respaldo.json (todas las tablas) + los PDF de evaluación si se pueden descargar."""
+    import json, zipfile, requests
+    datos = obtener_datos_respaldo_estudiante(matricula)
+    respaldo = {
+        "matricula": matricula,
+        "generado": ahora_local().isoformat(),
+        "tablas": datos,
+    }
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as z:
+        z.writestr("respaldo.json", json.dumps(respaldo, ensure_ascii=False, indent=2, default=str))
+        for i, ev in enumerate(datos.get("evaluaciones_pdf", []), 1):
+            url = ev.get("url_pdf")
+            if not url:
+                continue
+            try:
+                r = requests.get(url, timeout=15)
+                r.raise_for_status()
+                z.writestr(f"evaluaciones/evaluacion_{i}.pdf", r.content)
+            except Exception as e:
+                print(f"⚠️ Respaldo: no se pudo descargar {url}: {e}")
+    return buffer.getvalue()
+
+
 def eliminar_estudiante_supabase(matricula):
+    """
+    Deep delete manual (sin ON DELETE CASCADE): borra al estudiante de cada tabla
+    en el orden de TABLAS_ESTUDIANTE. Si falla una tabla obligatoria se detiene
+    ANTES de llegar a perfiles_estudiantes/usuarios.
+    """
     if not supabase: return False, "Supabase no conectado"
+    if not matricula: return False, "Matrícula vacía"
+    resumen = []
+    for tabla, columna, obligatoria in TABLAS_ESTUDIANTE:
+        try:
+            r = supabase.table(tabla).delete().eq(columna, matricula).execute()
+            resumen.append(f"{tabla}: {len(r.data or [])}")
+        except Exception as e:
+            if obligatoria:
+                hecho = ", ".join(resumen) or "nada"
+                return False, (f"Error al borrar de {tabla}: {e}. Se detuvo el borrado "
+                               f"(ya eliminado → {hecho}). El usuario NO se borró.")
+            print(f"⚠️ Se omitió {tabla} al borrar {matricula}: {e}")
+            resumen.append(f"{tabla}: omitida")
+    # Verificación final: que el usuario ya no exista (RLS puede impedir el delete sin error)
     try:
-        supabase.table("perfiles_estudiantes").delete().eq("matricula", matricula).execute()
-        supabase.table("usuarios").delete().eq("identificador", matricula).execute()
-        return True, "Estudiante eliminado correctamente"
-    except Exception as e:
-        return False, f"Error: {str(e)}"
+        sigue = supabase.table("usuarios").select("identificador").eq("identificador", matricula).execute().data
+        if sigue:
+            return False, "Supabase no permitió borrar el usuario (revisa las políticas RLS de la tabla usuarios)."
+    except Exception:
+        pass
+    return True, f"Estudiante {matricula} eliminado por completo (registros borrados → {', '.join(resumen)})"
 
 def generar_nombre_archivo_estudiantes():
     ahora = ahora_local()
@@ -428,11 +509,42 @@ def mostrar():
             
             st.markdown("---")
             col_eliminar1, col_eliminar2 = st.columns([1, 2])
+            if st.session_state.get("msg_eliminar_estudiante"):
+                st.success(st.session_state.pop("msg_eliminar_estudiante"))
             with col_eliminar1:
                 matricula_eliminar = st.selectbox("Seleccionar matrícula para eliminar", options=[e["matricula"] for e in estudiantes], key="eliminar_matricula")
-                if st.button("Eliminar Estudiante", use_container_width=True):
-                    exito, mensaje = eliminar_estudiante_supabase(matricula_eliminar)
-                    if exito: st.success(mensaje); st.rerun()
+                
+                # 1) Respaldo opcional antes de borrar
+                clave_resp = f"respaldo_zip_{matricula_eliminar}"
+                if st.button("Generar respaldo de sus datos", use_container_width=True, key="btn_generar_respaldo_est"):
+                    with st.spinner("Generando respaldo..."):
+                        st.session_state[clave_resp] = generar_respaldo_estudiante_zip(matricula_eliminar)
+                if st.session_state.get(clave_resp):
+                    st.download_button(
+                        "Descargar respaldo (.zip)",
+                        data=st.session_state[clave_resp],
+                        file_name=f"respaldo_{matricula_eliminar}_{ahora_local().strftime('%Y%m%d_%H%M')}.zip",
+                        mime="application/zip",
+                        use_container_width=True,
+                        key="btn_descargar_respaldo_est",
+                    )
+            with col_eliminar2:
+                st.caption("Se borrará TODO lo del estudiante: historial de chat, respuestas, "
+                           "evaluaciones, calificaciones, progreso, perfil y usuario. No se puede deshacer.")
+                # 2) Doble confirmación: checkbox + escribir la matrícula
+                seguro = st.checkbox(f"Estoy seguro de eliminar a {matricula_eliminar} y todos sus datos",
+                                     key=f"chk_seguro_eliminar_{matricula_eliminar}")
+                confirmacion = st.text_input("Escribe la matrícula para confirmar",
+                                             key=f"txt_confirmar_eliminar_{matricula_eliminar}")
+                listo = seguro and confirmacion.strip() == str(matricula_eliminar)
+                if st.button("Eliminar Estudiante", use_container_width=True, disabled=not listo,
+                             key="btn_eliminar_estudiante"):
+                    with st.spinner("Eliminando registros..."):
+                        exito, mensaje = eliminar_estudiante_supabase(matricula_eliminar)
+                    if exito:
+                        st.session_state.pop(clave_resp, None)
+                        st.session_state["msg_eliminar_estudiante"] = mensaje
+                        st.rerun()
                     else: st.error(mensaje)
         else:
             st.info("No hay estudiantes registrados")
@@ -638,4 +750,4 @@ def mostrar():
         if st.button("+ Añadir nuevo circuito", use_container_width=True, key="btn_anadir_circuito_admin"):
             st.session_state['editando_circuito'] = None
             st.session_state['pagina'] = 'editar_circuito' # <-- Nueva ruta
-            st.rerun()
+            st.rerun()

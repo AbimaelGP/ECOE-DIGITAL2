@@ -337,10 +337,14 @@ def mostrar_selector_sprite_paso3():
     sprites = obtener_sprites_disponibles()
     
     st.markdown("### Selecciona la imagen del paciente")
-    st.caption("Elige el sprite que mejor represente al paciente")
-    
+    st.caption(f"Elige el sprite que mejor represente al paciente ({len(sprites)} disponibles)")
+
+    if not sprites:
+        st.warning("No se encontraron imágenes en la carpeta sprites/todos/ de Supabase Storage.")
+        return
+
     cols = st.columns(4)
-    
+
     for idx, sprite in enumerate(sprites):
         col_idx = idx % 4
         with cols[col_idx]:
@@ -348,11 +352,12 @@ def mostrar_selector_sprite_paso3():
                 st.image(sprite['url'], width=80)
             except:
                 st.write("🖼️")
-            
+            st.caption(sprite.get('nombre', ''))
+
             if st.button("Seleccionar", key=f"sprite_sel_paso3_{idx}"):
                 st.session_state.sprite_seleccionado = sprite['url']
                 st.success("Imagen seleccionada")
                 st.rerun()
             
             if st.session_state.get('sprite_seleccionado') == sprite['url']:
-                st.markdown("Seleccionado")
+                st.markdown("Seleccionado")

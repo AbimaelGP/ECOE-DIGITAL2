@@ -13,7 +13,7 @@ from escenas.crear_caso.utils import (
 )
 
 
-LIMITE_ESTUDIOS = 10
+LIMITE_ESTUDIOS = 4
 
 
 # ==================== SESSION STATE AUXILIAR ====================

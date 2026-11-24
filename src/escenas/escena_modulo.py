@@ -56,26 +56,26 @@ def mostrar_temporizador_flotante(modulo_seleccionado):
             background-color: #FFFFFF;
             border: 3px solid {color};
             border-radius: 12px;
-            padding: 15px 25px;
+            padding: 6px 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             font-family: 'Poppins', sans-serif;
             text-align: center;
-            min-width: 200px;
+            min-width: 90px;
             transition: border-color 0.3s ease;
         }}
         #temporizador-modal-flotante .titulo {{
-            font-size: 12px; color: #626779; font-weight: 500; margin-bottom: 5px;
+            font-size: 8px; color: #626779; font-weight: 500; margin-bottom: 5px;
             letter-spacing: 1px; text-transform: uppercase;
         }}
         #temporizador-modal-flotante .tiempo {{
-            font-size: 32px; font-weight: 700; color: {color};
+            font-size: 18px; font-weight: 700; color: {color};
             font-variant-numeric: tabular-nums; transition: color 0.3s ease;
         }}
         #temporizador-modal-flotante .limite {{
-            font-size: 11px; color: #626779; margin-top: 5px;
+            font-size: 8px; color: #A0AABF; margin-top: 5px;
         }}
         #temporizador-modal-flotante .barra {{
-            width: 100%; height: 6px; background-color: #E5E7EC;
+            width: 100%; height: 3px; background-color: #E5E7EC;
             border-radius: 3px; margin-top: 10px; overflow: hidden;
         }}
         #temporizador-modal-flotante .barra-interna {{
@@ -84,13 +84,42 @@ def mostrar_temporizador_flotante(modulo_seleccionado):
         }}
     </style>
     <div id="temporizador-modal-flotante">
-        <div class="titulo">Tiempo restante</div>
+        <div class="titulo">TIEMPO</div>
         <div class="tiempo">{minutos}:{segundos:02d}</div>
         <div class="limite">Límite: {hora_limite_str}</div>
         <div class="barra"><div class="barra-interna"></div></div>
     </div>
     """
     st.markdown(modal_html, unsafe_allow_html=True)
+
+
+# ==================== FUNCIÓN AUXILIAR: AUTO-SCROLL DEL CHAT ====================
+
+def _autoscroll_chat(firma):
+    """Desplaza el contenedor con scroll del chat hasta el último mensaje.
+    `firma` cambia con cada mensaje nuevo para que el script se vuelva a ejecutar."""
+    import streamlit.components.v1 as components
+    components.html(f"""
+        <!-- {firma} -->
+        <script>
+          const bajar = () => {{
+            const doc = window.parent.document;
+            const fin = doc.getElementById("fin-chat-paciente");
+            if (!fin) return false;
+            let el = fin.parentElement;
+            while (el && el !== doc.body) {{
+              const oy = window.parent.getComputedStyle(el).overflowY;
+              if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight) {{
+                el.scrollTop = el.scrollHeight;
+                return true;
+              }}
+              el = el.parentElement;
+            }}
+            return false;
+          }};
+          let intentos = 0;
+          const t = setInterval(() => {{ if ((bajar() && intentos > 3) || ++intentos > 20) clearInterval(t); }}, 100);
+        </script>""", height=0)
 
 
 # ==================== FUNCIÓN AUXILIAR: VISIBILIDAD ====================
@@ -100,10 +129,11 @@ def _aplicar_visibilidad_escena(info_caso):
     if not info_caso:
         return {}
     
-    visibilidad = info_caso.get('visibilidad', {}) or {}
+    from components.modal_historial import _normalizar_visibilidad, _valor_visible
+    visibilidad = _normalizar_visibilidad(info_caso.get('visibilidad'))
     
     def es_visible(campo):
-        return visibilidad.get(campo, True)
+        return _valor_visible(visibilidad.get(campo))
     
     SPRITE_GENERICO = f"{SUPABASE_URL}/storage/v1/object/public/sprites/paciente_avatar.png"
     TEXTO_OCULTO = "No disponible."
@@ -238,7 +268,7 @@ def mostrar():
     # ===== CSS GLOBAL =====
     st.markdown("""
     <style>
-        .stApp { background: #F1F2F5; }
+        .stApp { background: #FFFFFF !important; }
         .stButton > button { background-color: #70257E; color: #FFFFFF; font-family: 'Poppins', sans-serif; font-weight: 500; padding: 0.75rem 1.5rem; border-radius: 10px; border: none; }
         .stButton > button:hover { background-color: #70257E; }
         
@@ -248,6 +278,13 @@ def mostrar():
         .bubble-user { background-color: #70257E; color: #FFFFFF; border-radius: 20px 4px 20px 20px; padding: 0.5rem 1rem; max-width: 70%; font-size: 14px; line-height: 1.4; }
         .bubble-bot { background-color: #E5E7EC; color: #303442; border-radius: 4px 20px 20px 20px; padding: 0.5rem 1rem; max-width: 70%; font-size: 14px; line-height: 1.4; }
         .avatar-img { width: 40px; height: 40px; border-radius: 50%; margin: 0 0.5rem; flex-shrink: 0; object-fit: cover; border: 2px solid #E5E7EC; }
+        
+        /* Indicador "el paciente está escribiendo..." */
+        .typing-bubble { display: inline-flex; align-items: center; gap: 5px; padding: 0.75rem 1rem; }
+        .typing-bubble span { width: 8px; height: 8px; border-radius: 50%; background-color: #626779; display: inline-block; animation: typing-bounce 1.2s infinite ease-in-out; }
+        .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing-bounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-6px); opacity: 1; } }
         
         /* Forzar la visibilidad del botón de Rerun */
         header[data-testid="stHeader"] {
@@ -299,6 +336,8 @@ def mostrar():
         chat_key = f"chat_{caso_paciente}"
         audio_key = f'audio_{caso_paciente}'
         
+        pendiente_key = f"respuesta_pendiente_{caso_paciente}"
+        
         if chat_key not in st.session_state:
             st.session_state[chat_key] = []
         
@@ -312,7 +351,7 @@ def mostrar():
                 st.markdown(f"""
                 <div class="chat-message chat-message-bot">
                     <img src="{url_avatar_paciente}" class="avatar-img" />
-                    <div class="bubble-bot">Hola Dr. Gracias por atenderme.</div>
+                    <div class="bubble-bot">Inicia la conversación.</div>
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -335,6 +374,21 @@ def mostrar():
                             <img src="{url_avatar_doctor}" class="avatar-img" />
                         </div>
                         """, unsafe_allow_html=True)
+            
+            # Tres puntitos mientras la IA genera la respuesta
+            if st.session_state.get(pendiente_key):
+                st.markdown(f"""
+                <div class="chat-message chat-message-bot">
+                    <img src="{url_avatar_paciente}" class="avatar-img" />
+                    <div class="bubble-bot typing-bubble"><span></span><span></span><span></span></div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Marcador para el auto-scroll
+            st.markdown('<div id="fin-chat-paciente"></div>', unsafe_allow_html=True)
+        
+        # Auto-scroll: lleva el contenedor del chat hasta el último mensaje
+        _autoscroll_chat(f"{len(st.session_state[chat_key])}-{bool(st.session_state.get(pendiente_key))}")
         
         # Input del chat
         with st.form(key=f"chat_form_{caso_paciente}", clear_on_submit=True):
@@ -356,7 +410,15 @@ def mostrar():
                     st.rerun()
                 
                 st.session_state[chat_key].append({"role": "user", "content": pregunta, "hora": ahora_local().isoformat()})
-                
+                # Fase 1: mostrar ya el mensaje del estudiante + los tres puntitos;
+                # la respuesta se genera en el siguiente rerun (fase 2, abajo).
+                st.session_state[pendiente_key] = pregunta
+                st.rerun()
+        
+        # Fase 2: generar la respuesta (los puntitos ya están en pantalla)
+        if st.session_state.get(pendiente_key):
+            pregunta = st.session_state[pendiente_key]
+            try:
                 from chatbot.adaptador_bot import responder_como_paciente
                 from chatbot.prompt_constructor import crear_prompt_paciente
                 
@@ -389,8 +451,11 @@ def mostrar():
                 
                 from utils.guardar_historial import guardar_historial_chat
                 guardar_historial_chat(matricula, modulo_seleccionado, caso_paciente)
-                
-                st.rerun()
+            finally:
+                # Quitar los puntitos aunque la IA falle
+                st.session_state.pop(pendiente_key, None)
+            
+            st.rerun()
 
         # =========================================================================
     # VISTA PARA PACIENTE ESTÁTICO O ESTANDARIZADO (Historial Completo al Centro)
@@ -517,8 +582,9 @@ def _renderizar_ficha_estatica(info_caso, datos_visibles, sprite_url):
     st.markdown("<hr style='margin: 1rem 0;'>", unsafe_allow_html=True)
 
     # ===== RESTO DE LA INFORMACIÓN (Texto principal) =====
-    visibilidad = info_caso.get('visibilidad', {}) or {}
-    def visible(campo): return visibilidad.get(campo, True)
+    from components.modal_historial import _normalizar_visibilidad, _valor_visible
+    visibilidad = _normalizar_visibilidad(info_caso.get('visibilidad'))
+    def visible(campo): return _valor_visible(visibilidad.get(campo))
     
     # Función auxiliar para imprimir secciones con estilo
     def render_seccion(titulo, texto):

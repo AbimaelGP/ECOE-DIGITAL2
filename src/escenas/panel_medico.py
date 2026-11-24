@@ -502,6 +502,11 @@ def mostrar():
     
     # Titulo
     st.markdown('<h1 class="medico-title">Perfil de Médico</h1>', unsafe_allow_html=True)
+    
+    # Aviso pendiente (p. ej. el ID del caso cambió al guardar en el paso 5)
+    aviso_pendiente = st.session_state.pop('aviso_panel_medico', None)
+    if aviso_pendiente:
+        st.warning(aviso_pendiente)
    
     identificador_medico = st.session_state.get('identificador', '')
    
@@ -541,7 +546,7 @@ def mostrar():
                 with col1:
                     st.markdown("**Clave**")
                 with col2:
-                    st.markdown("**Descripción**")
+                    st.markdown("**Nombre del caso**")
                 with col3:
                     st.markdown("**Área**")
                 with col4:
@@ -559,12 +564,12 @@ def mostrar():
                     col1, col2, col3, col4, col5, col6, col7 = st.columns([0.8, 2.2, 1.6, 1.1, 0.8, 1, 1])
                 
                     data_paciente = caso.get('data', {})
-                    descripcion = data_paciente.get('descripcion', 'Sin descripción')
+                    nombre_caso = data_paciente.get('nombre_caso') or 'Sin nombre'
                 
                     with col1:
                         st.markdown(f"{caso['clave_caso']}")
                     with col2:
-                        st.markdown(f'<span style="font-size: 12px; color: #626779;">{descripcion}</span>', unsafe_allow_html=True)
+                        st.markdown(f'<span style="font-size: 12px; color: #626779;">{nombre_caso}</span>', unsafe_allow_html=True)
                     with col3:
                         st.markdown(f"{caso['especialidad']}")
                     with col4:
@@ -667,4 +672,4 @@ def subir_imagen_supabase(archivo_subido, clave_caso, nombre_estudio):
         
     except Exception as e:
         print(f"❌ Error al subir imagen: {e}")
-        return None
+        return None
