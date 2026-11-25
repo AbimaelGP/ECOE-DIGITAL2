@@ -352,7 +352,7 @@ def mostrar_selector_sprite_paso3():
                 st.image(sprite['url'], width=80)
             except:
                 st.write("🖼️")
-            st.caption(sprite.get('nombre', ''))
+            #st.caption(sprite.get('nombre', ''))
 
             if st.button("Seleccionar", key=f"sprite_sel_paso3_{idx}"):
                 st.session_state.sprite_seleccionado = sprite['url']
@@ -360,4 +360,4 @@ def mostrar_selector_sprite_paso3():
                 st.rerun()
             
             if st.session_state.get('sprite_seleccionado') == sprite['url']:
-                st.markdown("Seleccionado")
+                st.markdown("✅")
