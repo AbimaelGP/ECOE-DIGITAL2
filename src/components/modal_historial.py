@@ -9,14 +9,36 @@ SPRITE_GENERICO = f"{SUPABASE_URL}/storage/v1/object/public/sprites/paciente_ava
 TEXTO_OCULTO = "No disponible, no han sido recolectados."
 
 
+def _normalizar_visibilidad(visibilidad):
+    """Devuelve el dict de visibilidad aunque venga como texto JSON o None."""
+    if isinstance(visibilidad, str):
+        try:
+            import json
+            visibilidad = json.loads(visibilidad)
+        except Exception:
+            visibilidad = {}
+    return visibilidad if isinstance(visibilidad, dict) else {}
+
+
+def _valor_visible(valor):
+    """Interpreta el flag de visibilidad: solo es visible si es verdadero.
+    (False, 0, "false", "no", "0", "oculto" → oculto; ausente → visible)."""
+    if valor is None:
+        return True
+    if isinstance(valor, str):
+        return valor.strip().lower() not in ("false", "0", "no", "oculto", "f", "")
+    return bool(valor)
+
+
 # ==================== FUNCIONES AUXILIARES ====================
 
 def _aplicar_visibilidad(info_caso):
-    """Aplica la visibilidad a los datos del paciente (modo estudiante)."""
-    visibilidad = info_caso.get('visibilidad', {}) or {}
+    """Aplica la visibilidad a los datos del paciente (modo estudiante).
+    Lo marcado como oculto NUNCA se devuelve: se sustituye por TEXTO_OCULTO."""
+    visibilidad = _normalizar_visibilidad(info_caso.get('visibilidad'))
     
     def es_visible(campo):
-        return visibilidad.get(campo, True)
+        return _valor_visible(visibilidad.get(campo))
     
     datos = {
         'nombre': info_caso.get('nombre', 'No disponible') if es_visible('nombre') else TEXTO_OCULTO,
@@ -276,4 +298,4 @@ def ver_caso_modal(clave_caso, key_suffix, dentro_formulario=False, modo_admin=F
                     st.session_state[dialog_key] = False
                     st.rerun()
         
-        _ver_caso_dialog()
+        _ver_caso_dialog()

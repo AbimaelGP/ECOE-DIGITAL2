@@ -55,7 +55,7 @@ def mostrar():
     st.markdown("""
     <div style="background-color: #FFFFFF; padding: 3rem; border-radius: 12px; border: 2px solid #70257E; text-align: center; margin-top: 2rem;">
         <h2 style="color: #252A38; margin-bottom: 1rem;">🚧 Sección en construcción</h2>
-        <p style="color: #303442; font-size: 18px;">Próximamente estará disponible el chatbot evaluador</p>
+        <p style="color: #303442; font-size: 18px;">Próximamente estará disponible la IA Evaluadora</p>
         <p style="color: #626779; font-size: 14px;">Esta herramienta permitirá evaluar el desempeño de los estudiantes de forma interactiva</p>
     </div>
     """, unsafe_allow_html=True)
@@ -78,4 +78,4 @@ def mostrar():
             for key in ['autenticado', 'tipo_usuario', 'identificador', 'nombre', 'permisos', 'pagina']:
                 if key in st.session_state:
                     del st.session_state[key]
-            st.rerun()
+            st.rerun()

@@ -62,7 +62,7 @@ def mostrar_lista():
 
     pesos = [0.95, 2, 0.75, 0.95, 1.15, 2.4, 1.55, 1.35]
     cab = st.columns(pesos)
-    for col, t in zip(cab, ["Matrícula", "Nombre", "Circuito", "Caso", "Modalidad", "Chatbot evaluador", "Mi evaluación", ""]):
+    for col, t in zip(cab, ["Matrícula", "Nombre", "Circuito", "Caso", "Modalidad", "IA Evaluadora", "Mi evaluación", ""]):
         col.markdown(f"**{t}**")
     st.markdown("<hr style='margin:4px 0'>", unsafe_allow_html=True)
 

@@ -5,8 +5,9 @@ Genera un PDF con la información completa de un caso clínico.
 Estructura:
   PÁGINA 1  → Metadatos (tipo de caso, responsable, fecha) + Rúbrica de competencias
   PÁGINA 2  → Datos del paciente + Instrucciones al estudiante (hoja independiente)
-  PÁGINA 3  → Guión del paciente (página independiente, para imprimir/se separar)
-  PÁGINA 4+ → Preguntas de evaluación (tabla con respuestas)
+  PÁGINA 3  → Guión del paciente (página independiente, fondo blanco, fluye entre páginas)
+  SECCIÓN   → Rúbricas de evaluación (tabla completa de niveles + espacio para notas a mano)
+  PÁGINA 4+ → Preguntas de evaluación (lista Pregunta / Respuesta esperada)
   PÁGINA 5+ → Anexo: imágenes de estudios (si existen)
 
 Footer institucional en todas las páginas.
@@ -140,6 +141,98 @@ def _campo(label, valor, estilos):
         Paragraph(label, estilos["label"]),
         Paragraph(str(valor).replace("\n", "<br/>"), estilos["cuerpo"]),
     ]
+
+
+def _texto_pdf(texto):
+    """Escapa &, <, > (rompen el parser de Paragraph) y convierte saltos de línea."""
+    from xml.sax.saxutils import escape
+    return escape(str(texto or "").strip()).replace("\n", "<br/>")
+
+
+def _lineas_para_escribir(ancho, renglones=5, alto_renglon=0.8 * cm):
+    """Espacio en blanco con renglones para que el docente escriba a mano."""
+    t = Table([[""]] * renglones, colWidths=[ancho], rowHeights=[alto_renglon] * renglones)
+    t.setStyle(TableStyle([
+        ("LINEBELOW", (0, 0), (-1, -1), 0.4, colors.HexColor("#BFC3CC")),
+        ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#D1D5DB")),
+    ]))
+    return t
+
+
+def _seccion_rubricas(info_caso, estilos, ancho):
+    """
+    Sección independiente (inicia en página nueva) con la tabla completa de
+    cada rúbrica: criterio + 5 niveles de desempeño con su descriptor, igual
+    que el formulario del médico evaluador, y renglones para notas a mano.
+    """
+    rubrica = info_caso.get("rubrica_competencias", []) or []
+    if not rubrica:
+        return []
+
+    # Import local: evaluacion_dual importa streamlit/supabase
+    from utils.evaluacion_dual import competencias_de_caso, NIVELES
+    criterios = competencias_de_caso(rubrica)
+    if not criterios:
+        return []
+
+    th = ParagraphStyle("rub_th", fontName="Helvetica-Bold", fontSize=8,
+                        textColor=colors.white, leading=10, alignment=1)
+    th_rango = ParagraphStyle("rub_rango", fontName="Helvetica", fontSize=7,
+                              textColor=colors.white, leading=9, alignment=1)
+    td = ParagraphStyle("rub_td", fontName="Helvetica", fontSize=7.5,
+                        textColor=GRIS_TEXTO, leading=9.5)
+    estilo_dom = ParagraphStyle("rub_dom", fontName="Helvetica-Bold", fontSize=10.5,
+                                textColor=MORADO, leading=13, spaceAfter=1)
+    estilo_cat = ParagraphStyle("rub_cat", fontName="Helvetica", fontSize=8,
+                                textColor=GRIS_SUAVE, leading=10, spaceAfter=2)
+    estilo_crit = ParagraphStyle("rub_crit", fontName="Helvetica-Bold", fontSize=9.5,
+                                 textColor=GRIS_TEXTO, leading=12, spaceAfter=5)
+    estilo_obs = ParagraphStyle("rub_obs", fontName="Helvetica-Bold", fontSize=8.5,
+                                textColor=GRIS_TEXTO, spaceBefore=5, spaceAfter=2)
+
+    flows = [PageBreak(), _seccion("Rúbricas de evaluación", estilos), Paragraph(
+        "Rúbrica General (5 niveles, escala 1–10) aplicada a cada competencia del caso. "
+        "Debajo de cada rúbrica hay espacio para anotaciones del docente.",
+        estilos["caption"]
+    ), Spacer(1, 0.3 * cm)]
+
+    ancho_col = ancho / len(NIVELES)
+    for n, c in enumerate(criterios, 1):
+        descriptores = list(c.get("niveles") or [])
+        descriptores += [""] * (len(NIVELES) - len(descriptores))
+
+        fila_titulos = [[Paragraph(nombre, th), Paragraph(f"{lo}–{hi}", th_rango)]
+                        for nombre, lo, hi in NIVELES]
+        fila_desc = [Paragraph(_texto_pdf(d), td) for d in descriptores[:len(NIVELES)]]
+
+        tabla = Table([fila_titulos, fila_desc], colWidths=[ancho_col] * len(NIVELES))
+        tabla.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), MORADO),
+            ("VALIGN", (0, 0), (-1, 0), "MIDDLE"),
+            ("VALIGN", (0, 1), (-1, 1), "TOP"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#D1D5DB")),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ]))
+
+        bloque = [
+            Paragraph(f'{n}. {_texto_pdf(c.get("dominio"))}', estilo_dom),
+            Paragraph(_texto_pdf(c.get("categoria")), estilo_cat),
+            Paragraph(_texto_pdf(c.get("texto")), estilo_crit),
+            tabla,
+            Paragraph("Puntaje: ______ &nbsp;&nbsp;&nbsp; Observaciones del docente:", estilo_obs),
+            _lineas_para_escribir(ancho, renglones=4),
+            Spacer(1, 0.6 * cm),
+        ]
+        flows.append(KeepTogether(bloque))
+
+    flows.append(KeepTogether([
+        Paragraph("Comentarios generales / retroalimentación para el estudiante", estilo_obs),
+        _lineas_para_escribir(ancho, renglones=6),
+    ]))
+    return flows
 
 
 # ==================== FOOTER ====================
@@ -385,20 +478,22 @@ def generar_pdf_caso(clave_caso, info_caso):
                            fontSize=9, textColor=GRIS_SUAVE,
                            alignment=1, spaceAfter=16)
         ))
-        guion_parr = Paragraph(
-            guion_paciente.replace("\n", "<br/>"),
-            estilos["cuerpo_grande"]
+        # Antes era un Paragraph dentro de una Table: si el guión no cabía en una
+        # página, ReportLab lanzaba "tallest cell ... too large". Ahora es un
+        # Paragraph con borde propio (fondo blanco) que se parte entre páginas.
+        estilo_guion = ParagraphStyle(
+            "guion_cuerpo", parent=estilos["cuerpo_grande"],
+            backColor=colors.white,
+            borderColor=MORADO, borderWidth=1.5, borderPadding=14,
+            leftIndent=14, rightIndent=14,   # = borderPadding, para que el borde no salga del margen
+            spaceBefore=14, spaceAfter=14,
         )
-        tabla_guion = Table([[guion_parr]], colWidths=[doc.width])
-        tabla_guion.setStyle(TableStyle([
-            ("BOX", (0, 0), (-1, -1), 1.5, MORADO),
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8F4F9")),
-            ("LEFTPADDING", (0, 0), (-1, -1), 14),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 14),
-            ("TOPPADDING", (0, 0), (-1, -1), 14),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 14),
-        ]))
-        story.append(tabla_guion)
+        story.append(Paragraph(_texto_pdf(guion_paciente), estilo_guion))
+
+    # ============================================================
+    # RÚBRICAS DE EVALUACIÓN (sección independiente)
+    # ============================================================
+    story.extend(_seccion_rubricas(info_caso, estilos, doc.width))
 
     # ============================================================
     # PÁGINA 4+: PREGUNTAS DE EVALUACIÓN
@@ -417,50 +512,27 @@ def generar_pdf_caso(clave_caso, info_caso):
             "Las respuestas esperadas se muestran a continuación para uso del docente/evaluador.",
             estilos["caption"]
         ))
-        story.append(Spacer(1, 0.3 * cm))
+        story.append(Spacer(1, 0.2 * cm))
 
-        # Estilos de encabezado de la tabla (texto BLANCO sobre morado)
-        th_style = ParagraphStyle(
-            "th", fontName="Helvetica-Bold", fontSize=10,
-            textColor=colors.white, leading=13
+        # Lista simple (Pregunta / Respuesta esperada) en lugar de tabla
+        estilo_pregunta = ParagraphStyle(
+            "pregunta_item", fontName="Helvetica-Bold", fontSize=10,
+            textColor=GRIS_TEXTO, leading=13, spaceBefore=6, spaceAfter=2,
+            leftIndent=14, firstLineIndent=-14,
         )
-        td_style = ParagraphStyle(
-            "td", fontName="Helvetica", fontSize=9,
-            textColor=GRIS_TEXTO, leading=13
+        estilo_respuesta = ParagraphStyle(
+            "respuesta_item", fontName="Helvetica", fontSize=9.5,
+            textColor=GRIS_TEXTO, leading=13, spaceAfter=6, leftIndent=14,
         )
-
-        tabla_data = [[
-            Paragraph("#", th_style),
-            Paragraph("Pregunta", th_style),
-            Paragraph("Respuesta esperada", th_style),
-        ]]
         for i, p in enumerate(preguntas_validas, 1):
-            tabla_data.append([
-                Paragraph(str(i), td_style),
-                Paragraph(p.get("pregunta", "").replace("\n", "<br/>"), td_style),
-                Paragraph(
-                    (p.get("respuesta_esperada", "") or "—").replace("\n", "<br/>"),
-                    td_style
-                ),
-            ])
-
-        tabla_preguntas = Table(
-            tabla_data,
-            colWidths=[1 * cm, doc.width * 0.45, doc.width * 0.55 - 1 * cm],
-            repeatRows=1,
-        )
-        tabla_preguntas.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), MORADO),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#D1D5DB")),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F8F4F9")]),
-            ("LEFTPADDING", (0, 0), (-1, -1), 6),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-        ]))
-        story.append(tabla_preguntas)
+            story.append(Paragraph(
+                f'{i}. {_texto_pdf(p.get("pregunta", ""))}', estilo_pregunta
+            ))
+            story.append(Paragraph(
+                f'<font color="#70257E"><b>Respuesta esperada:</b></font> '
+                f'{_texto_pdf(p.get("respuesta_esperada", "")) or "—"}',
+                estilo_respuesta
+            ))
 
     # ============================================================
     # PÁGINA 5+: ANEXO: ESTUDIOS (valores + imágenes)
@@ -603,4 +675,4 @@ def generar_pdf_caso(clave_caso, info_caso):
 
     doc.build(story)
     buffer.seek(0)
-    return buffer
+    return buffer

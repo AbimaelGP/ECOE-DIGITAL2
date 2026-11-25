@@ -6,6 +6,7 @@ from escenas.crear_caso.utils import (
     ir_a_paso, cancelar_creacion, limpiar_caso,
     obtener_sprite_segun_edad_sexo,
     es_modo_editar, obtener_clave_caso_editando,
+    obtener_siguiente_numero_caso, CODIGO_ESPECIALIDAD,
     KEY_MODO
 )
 from utils.supabase_client import supabase
@@ -101,6 +102,16 @@ def mostrar():
             else:
                 _guardar_datos_paso5(instrucciones_caso)
                 
+                # ===== VALIDAR QUE EL ID SIGA DISPONIBLE (solo al crear) =====
+                aviso_id = None
+                if not modo_editar:
+                    id_anterior, id_nuevo = _revalidar_id_caso()
+                    if id_nuevo != id_anterior:
+                        aviso_id = (f"El ID {id_anterior} ya fue usado por otro caso mientras creabas este. "
+                                    f"Tu caso se guardó con el nuevo ID {id_nuevo}.")
+                        st.warning(aviso_id)
+                        caso = obtener_caso()
+                
                 accion = "actualizando" if modo_editar else "guardando"
                 with st.spinner(f"{accion.capitalize()} caso completo..."):
                     exito, mensaje = _guardar_caso_completo()
@@ -109,6 +120,9 @@ def mostrar():
                     clave_mostrar = clave_editando if modo_editar else caso.get('id_caso', '')
                     accion_mostrar = "actualizado" if modo_editar else "creado"
                     st.success(f"Caso {clave_mostrar} {accion_mostrar} exitosamente")
+                    if aviso_id:
+                        # Se muestra en el panel médico después del rerun
+                        st.session_state['aviso_panel_medico'] = aviso_id
                     
                     limpiar_caso()
                     if KEY_MODO in st.session_state:
@@ -182,6 +196,47 @@ def _renderizar_seccion_preguntas(caso):
             preguntas.pop(idx)
         actualizar_caso('preguntas_caso', preguntas)
         st.rerun()
+
+
+def _revalidar_id_caso():
+    """
+    Vuelve a consultar en Supabase el siguiente número disponible para la
+    especialidad. Si el ID generado en el paso 1 ya no es válido (otro médico
+    guardó un caso con ese número), lo actualiza en session_state.
+    Retorna (id_anterior, id_final).
+    """
+    import re
+    caso = obtener_caso()
+    id_actual = caso.get('id_caso', '') or ''
+    
+    codigo = CODIGO_ESPECIALIDAD.get(caso.get('especialidad', ''))
+    m = re.match(r'^([A-Za-z]+)(\d+)$', id_actual)
+    if not codigo and m:
+        codigo = m.group(1)
+    if not codigo or not supabase:
+        return id_actual, id_actual
+    
+    numero_actual = int(m.group(2)) if m and m.group(1) == codigo else None
+    
+    try:
+        existe = supabase.table("casos_clinicos").select("clave_caso").eq("clave_caso", id_actual).execute().data
+    except Exception as e:
+        print(f"⚠️ No se pudo verificar el ID {id_actual}: {e}")
+        return id_actual, id_actual
+    
+    siguiente = obtener_siguiente_numero_caso(codigo)
+    id_siguiente = f"{codigo}{siguiente:04d}"
+    
+    # Cambiar si el ID ya está ocupado, o si ya hay casos con número mayor o igual
+    # (otro médico avanzó la numeración). Si la consulta falló y devolvió 1,
+    # no se retrocede la numeración.
+    if existe or numero_actual is None or siguiente > numero_actual:
+        if id_siguiente != id_actual:
+            actualizar_caso('id_caso', id_siguiente)
+            print(f"ℹ️ ID de caso actualizado: {id_actual} → {id_siguiente}")
+            return id_actual, id_siguiente
+    
+    return id_actual, id_actual
 
 
 def _guardar_datos_paso5(instrucciones_caso):
@@ -297,4 +352,4 @@ def _guardar_caso_completo():
         print(f"❌ Error guardando caso: {e}")
         import traceback
         traceback.print_exc()
-        return False, f"Error: {str(e)}"
+        return False, f"Error: {str(e)}"

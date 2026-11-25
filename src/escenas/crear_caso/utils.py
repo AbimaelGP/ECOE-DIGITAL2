@@ -284,36 +284,62 @@ def subir_imagen_supabase(archivo_subido, clave_caso, nombre_estudio):
 # ==================== FUNCIONES DE SPRITES ====================
 
 def obtener_sprite_segun_edad_sexo(edad, sexo):
-    """Retorna la URL del sprite según edad y sexo"""
-    if edad < 12:
-        categoria = "ninos"
-    elif edad < 20:
-        categoria = "adolescentes"
-    elif edad < 60:
-        categoria = "adultos"
-    else:
-        categoria = "adulto_mayor"
-    
-    if sexo.lower() == "femenino":
-        genero = "femenino"
-    else:
-        genero = "masculino"
-    
-    return f"{SUPABASE_URL}/storage/v1/object/public/sprites/{categoria}_{genero}.png"
+    """Retorna la URL del sprite base por defecto (placeholder).
+    Se conservan los parámetros para no romper las llamadas existentes."""
+    return f"{SUPABASE_URL}/storage/v1/object/public/sprites/placeholder.png"
 
 
+BUCKET_SPRITES = "sprites"
+CARPETA_SPRITES = "todos"
+_EXTENSIONES_SPRITE = (".png", ".jpg", ".jpeg", ".webp", ".gif")
+
+
+@st.cache_data(ttl=300, show_spinner=False)
 def obtener_sprites_disponibles():
-    """Retorna la lista de sprites disponibles"""
-    return [
-        {"nombre": "Niño", "url": f"{SUPABASE_URL}/storage/v1/object/public/sprites/ninos_masculino.png"},
-        {"nombre": "Niña", "url": f"{SUPABASE_URL}/storage/v1/object/public/sprites/ninos_femenino.png"},
-        {"nombre": "Adolescente M", "url": f"{SUPABASE_URL}/storage/v1/object/public/sprites/adolescentes_masculino.png"},
-        {"nombre": "Adolescente F", "url": f"{SUPABASE_URL}/storage/v1/object/public/sprites/adolescentes_femenino.png"},
-        {"nombre": "Adulto M", "url": f"{SUPABASE_URL}/storage/v1/object/public/sprites/adultos_masculino.png"},
-        {"nombre": "Adulto F", "url": f"{SUPABASE_URL}/storage/v1/object/public/sprites/adultos_femenino.png"},
-        {"nombre": "Adulto Mayor M", "url": f"{SUPABASE_URL}/storage/v1/object/public/sprites/adulto_mayor_masculino.png"},
-        {"nombre": "Adulto Mayor F", "url": f"{SUPABASE_URL}/storage/v1/object/public/sprites/adulto_mayor_femenino.png"}
-    ]
+    """
+    Lista TODOS los sprites de la carpeta `sprites/todos/` en Supabase Storage,
+    en orden alfabético. Cada elemento: {"nombre": ..., "url": ...}.
+    (Se cachea 5 minutos para no consultar Storage en cada rerun.)
+    """
+    if not supabase:
+        return []
+
+    from urllib.parse import quote
+
+    archivos = []
+    offset, tamano_pagina = 0, 1000
+    try:
+        while True:
+            pagina = supabase.storage.from_(BUCKET_SPRITES).list(
+                CARPETA_SPRITES,
+                {"limit": tamano_pagina, "offset": offset,
+                 "sortBy": {"column": "name", "order": "asc"}},
+            ) or []
+            archivos.extend(pagina)
+            if len(pagina) < tamano_pagina:
+                break
+            offset += tamano_pagina
+    except Exception as e:
+        print(f"❌ Error al listar sprites en Storage: {e}")
+        return []
+
+    sprites = []
+    for a in archivos:
+        nombre_archivo = (a or {}).get("name", "")
+        # Ignorar subcarpetas (id None), el placeholder de Supabase y archivos que no son imagen
+        if not nombre_archivo or a.get("id") is None or nombre_archivo.startswith("."):
+            continue
+        if not nombre_archivo.lower().endswith(_EXTENSIONES_SPRITE):
+            continue
+        nombre_legible = nombre_archivo.rsplit(".", 1)[0].replace("_", " ").replace("-", " ").strip()
+        sprites.append({
+            "nombre": nombre_legible or nombre_archivo,
+            "archivo": nombre_archivo,
+            "url": f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET_SPRITES}/{CARPETA_SPRITES}/{quote(nombre_archivo)}",
+        })
+
+    sprites.sort(key=lambda s: s["archivo"].lower())
+    return sprites
 
 
 # ==================== VALORES PREDETERMINADOS DE ESTUDIOS ====================
@@ -644,4 +670,4 @@ def aplicar_css_panel():
         .info-paso { background-color: #FFFFFF; padding: 10px 15px; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #70257E; color: #303442; font-family: 'Poppins', sans-serif; }
         .info-paso small { color: #626779; }
     </style>
-    """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)

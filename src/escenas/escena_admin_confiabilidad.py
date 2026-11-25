@@ -24,7 +24,7 @@ def mostrar():
         return
 
     filas = ed.construir_filas()
-    st.markdown('<div class="ev-seccion">Concordancia chatbot evaluador vs médico evaluador</div>', unsafe_allow_html=True)
+    st.markdown('<div class="ev-seccion">Concordancia IA Evaluadora vs médico evaluador</div>', unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
     examenes = sorted({str(f["fecha_examen"]) for f in filas if f["fecha_examen"]})
@@ -72,7 +72,7 @@ def mostrar():
                     fig.add_trace(go.Scatter(x=[1, 10], y=[1, 10], mode="lines", name="acuerdo perfecto (y = x)",
                                              line=dict(color="#A93266", dash="dash")))
                     fig.update_layout(title="Calificación del chatbot vs médico (por estudiante y caso)",
-                                      xaxis_title="Médico evaluador", yaxis_title="Chatbot evaluador",
+                                      xaxis_title="Médico evaluador", yaxis_title="IA Evaluadora",
                                       xaxis=dict(range=[0.5, 10.5]), yaxis=dict(range=[0.5, 10.5]))
                 else:
                     medias = [(a + b) / 2 for a, b in zip(xs, ys)]
@@ -114,7 +114,7 @@ def mostrar():
                     unsafe_allow_html=True)
             for dom in bajos:
                 st.markdown(f'<div class="ev-alerta">⚠ <b>{ui.e(dom)}</b> por debajo de {UMBRAL_DOMINIO:.2f}: '
-                            f'revisar el prompt del chatbot evaluador para este dominio.</div>', unsafe_allow_html=True)
+                            f'revisar el prompt de la IA Evaluadora para este dominio.</div>', unsafe_allow_html=True)
             st.download_button("Exportar datos (CSV)", pd.DataFrame(pares).to_csv(index=False).encode("utf-8-sig"),
                                file_name=f"confiabilidad_chatbot_{datetime.now():%Y%m%d}.csv", mime="text/csv",
                                key="conf_csv")

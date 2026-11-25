@@ -6,6 +6,11 @@ from escenas.crear_caso.utils import (
     COMPETENCIAS
 )
 
+# Límites de competencias para la rúbrica del caso
+MIN_COMPETENCIAS = 5
+MAX_COMPETENCIAS = 12
+
+
 def mostrar():
     """Paso 2: Selección de competencias del perfil de egreso"""
     
@@ -113,10 +118,21 @@ def mostrar():
         if st.button("← Atrás", key="btn_atras_paso2", use_container_width=True):
             ir_a_paso(1)
             
+    error_competencias = None
     with col_btn3:
         with st.container(key="btn_siguiente_crear_caso"):
             if st.button("Siguiente →", key="btn_siguiente_paso2", use_container_width=True, type="primary"):
-                ir_a_paso(3)
+                total_competencias = len(competencias_actuales)
+                if total_competencias < MIN_COMPETENCIAS or total_competencias > MAX_COMPETENCIAS:
+                    error_competencias = (
+                        f"Debes seleccionar entre {MIN_COMPETENCIAS} y {MAX_COMPETENCIAS} competencias. "
+                        f"Actualmente llevas {total_competencias}."
+                    )
+                else:
+                    ir_a_paso(3)
+
+    if error_competencias:
+        st.error(error_competencias)
 
 def mostrar_vista_previa_formulario(competencias):
     """Vista previa del formulario que llenará el médico evaluador."""

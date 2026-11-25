@@ -51,7 +51,7 @@ def _panel_ponderacion(filas, configs):
             st.markdown(f'<b style="color:{ui.MORADO};font-size:17px">Ponderación de la calificación final</b><br>'
                         '<span style="font-size:12px;color:#626779">Valores entre 0 y 1 · se normalizan para que sumen 1</span>',
                         unsafe_allow_html=True)
-            wb = st.slider("🤖 Chatbot evaluador", 0.0, 1.0, float(actual.get("w_chatbot", 0.5)), 0.05,
+            wb = st.slider("🤖 IA Evaluadora", 0.0, 1.0, float(actual.get("w_chatbot", 0.5)), 0.05,
                            key=f"pond_wb_{alcance}_{valor}", disabled=bool(actual.get("bloqueada")))
             wm = st.slider("🩺 Médico evaluador", 0.0, 1.0, float(actual.get("w_medico", 0.5)), 0.05,
                            key=f"pond_wm_{alcance}_{valor}", disabled=bool(actual.get("bloqueada")))
@@ -206,7 +206,7 @@ def _vista_comparativo(f, configs):
     h1, h2, h3, h4 = st.columns([4, 0.8, 0.8, 1.1])
     h1.markdown(f'<div class="ev-cab"><b>{ui.e(f["nombre"])}</b> ({ui.e(f["matricula"])}) · Caso {ui.e(f["clave_caso"])} '
                 f'{ui.badge_modalidad(f["modalidad"])} · Circuito {ui.e(f["circuito"])} · Área {f["num_area"]}<br>'
-                f'<span style="font-size:12px;color:#626779">Médico: {ui.e(nombres_med)} · Chatbot evaluador: prompt '
+                f'<span style="font-size:12px;color:#626779">Médico: {ui.e(nombres_med)} · IA Evaluadora: prompt '
                 f'{ui.e(bot.get("prompt_version", "—"))} · {ui.e(str(bot.get("fecha_evaluacion", ""))[:10])}</span></div>',
                 unsafe_allow_html=True)
     h2.markdown(f'<div class="ev-kpi"><div class="l">Chatbot</div><div class="v">{ui.fmt(r["chatbot"])}</div></div>', unsafe_allow_html=True)
@@ -226,7 +226,7 @@ def _vista_comparativo(f, configs):
             med_c.setdefault(c.get("clave"), []).append(c)
 
     cab = st.columns([1.3, 2.2, 2.2, 0.8])
-    for col, t in zip(cab, ["Competencia · dominio", "🤖 Chatbot evaluador: puntaje y criterio",
+    for col, t in zip(cab, ["Competencia · dominio", "🤖 IA Evaluadora: puntaje y criterio",
                             "🩺 Médico evaluador: puntaje y observación", "Diferencia"]):
         col.markdown(f"**{t}**")
 

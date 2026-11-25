@@ -499,26 +499,48 @@ def mostrar():
         }}
     </style>
     """, unsafe_allow_html=True)
+
+    # ===== CSS DE PESTAÑAS ESTILO ADMIN (separado para no romper el f-string) =====
+    st.markdown("""
+    <style>
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 1rem;
+            background-color: #FFFFFF;
+            border-radius: 10px;
+            padding: 0.5rem;
+        }
+        .stTabs [data-baseweb="tab"] {
+            color: #626779;
+            font-size: 18px !important;
+            font-weight: 600 !important;
+            padding: 0.5rem 2rem !important;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: #70257E !important;
+            color: #FFFFFF !important;
+            border-radius: 8px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
     
     # Titulo
     st.markdown('<h1 class="medico-title">Perfil de Médico</h1>', unsafe_allow_html=True)
+    
+    # Aviso pendiente (p. ej. el ID del caso cambió al guardar en el paso 5)
+    aviso_pendiente = st.session_state.pop('aviso_panel_medico', None)
+    if aviso_pendiente:
+        st.warning(aviso_pendiente)
    
     identificador_medico = st.session_state.get('identificador', '')
    
     medico_data = obtener_medico_supabase(identificador_medico)
     modulo_asignado = medico_data.get('modulo_asignado', 'No asignado') if medico_data else 'No asignado'
 
-    # ===== PESTAÑAS DEL PERFIL MÉDICO =====
-    opciones_vista = ["Casos Clínicos", "Evaluar Estudiantes"]
-    vista_inicial = 1 if st.session_state.pop("medico_tab", None) == "evaluar" else None
-    if vista_inicial is not None:
-        st.session_state["medico_vista"] = opciones_vista[vista_inicial]
-    vista = st.radio("Vista", opciones_vista, horizontal=True, key="medico_vista", label_visibility="collapsed")
+    # ===== PESTAÑAS DEL PERFIL MÉDICO (estilo admin) =====
+    tab_casos, tab_evaluar = st.tabs(["Casos Clínicos", "Evaluar Estudiantes"])
 
-    if vista == "Evaluar Estudiantes":
-        from escenas import escena_medico_evaluar
-        escena_medico_evaluar.mostrar_lista()
-    else:
+    # ---------- PESTAÑA: CASOS CLÍNICOS ----------
+    with tab_casos:
         st.markdown('<div class="section-title">Casos Clínicos</div>', unsafe_allow_html=True)
     
         col_add1, col_add2, col_add3 = st.columns([3, 1, 1])
@@ -541,7 +563,7 @@ def mostrar():
                 with col1:
                     st.markdown("**Clave**")
                 with col2:
-                    st.markdown("**Descripción**")
+                    st.markdown("**Nombre del caso**")
                 with col3:
                     st.markdown("**Área**")
                 with col4:
@@ -559,12 +581,12 @@ def mostrar():
                     col1, col2, col3, col4, col5, col6, col7 = st.columns([0.8, 2.2, 1.6, 1.1, 0.8, 1, 1])
                 
                     data_paciente = caso.get('data', {})
-                    descripcion = data_paciente.get('descripcion', 'Sin descripción')
+                    nombre_caso = data_paciente.get('nombre_caso') or 'Sin nombre'
                 
                     with col1:
                         st.markdown(f"{caso['clave_caso']}")
                     with col2:
-                        st.markdown(f'<span style="font-size: 12px; color: #626779;">{descripcion}</span>', unsafe_allow_html=True)
+                        st.markdown(f'<span style="font-size: 12px; color: #626779;">{nombre_caso}</span>', unsafe_allow_html=True)
                     with col3:
                         st.markdown(f"{caso['especialidad']}")
                     with col4:
@@ -629,6 +651,11 @@ def mostrar():
                     st.markdown("---")
         else:
             st.info("No tienes casos creados. Presiona '+ Añadir caso' para crear uno.")
+
+    # ---------- PESTAÑA: EVALUAR ESTUDIANTES ----------
+    with tab_evaluar:
+        from escenas import escena_medico_evaluar
+        escena_medico_evaluar.mostrar_lista()
    
     # Sidebar
     with st.sidebar:

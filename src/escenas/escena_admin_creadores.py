@@ -166,19 +166,32 @@ def mostrar():
     # --- PESTAÑA CREAR ---
     with tab_crear_med:
         st.markdown("**Crear Creador de Casos Individual**")
-        with st.form("form_crear_medico"):
+        
+        # Mensaje de éxito del alta anterior (sobrevive al rerun)
+        msg_ok = st.session_state.pop("medico_creado_msg", None)
+        if msg_ok:
+            st.success(msg_ok)
+        
+        # Cambiar este número genera widgets nuevos → todos los campos vuelven a quedar vacíos
+        n_form = st.session_state.setdefault("form_crear_medico_n", 0)
+        
+        with st.form(f"form_crear_medico_{n_form}"):
             c1, c2 = st.columns(2)
             with c1: 
-                id_n = st.text_input("ID (Identificador) *", placeholder="Ej: creador3")
-                nom_n = st.text_input("Nombre completo *", placeholder="Ej: Dr. Juan Pérez")
+                id_n = st.text_input("ID (Identificador) *", placeholder="Ej: creador3", key=f"med_id_{n_form}")
+                nom_n = st.text_input("Nombre completo *", placeholder="Ej: Dr. Juan Pérez", key=f"med_nom_{n_form}")
             with c2: 
-                mod_n = st.selectbox("Área Asignada *", options=obtener_lista_modulos())
-                p_n = st.text_input("Contraseña *", type="password", placeholder="Mínimo 6 caracteres")
+                mod_n = st.selectbox("Área Asignada *", options=obtener_lista_modulos(), key=f"med_mod_{n_form}")
+                p_n = st.text_input("Contraseña *", type="password", placeholder="Mínimo 6 caracteres", key=f"med_pass_{n_form}")
             
             if st.form_submit_button("Crear Creador", use_container_width=True):
+                id_n, nom_n = (id_n or "").strip(), (nom_n or "").strip()
                 if id_n and nom_n and p_n:
                     ex, msg = crear_medico_supabase(id_n, nom_n, mod_n, p_n, st.session_state.get('identificador', 'admin'))
-                    if ex: st.success(msg); st.rerun()
+                    if ex:
+                        st.session_state["medico_creado_msg"] = f"Perfil de médico creado: {nom_n} ({id_n}) — Área: {mod_n}"
+                        st.session_state["form_crear_medico_n"] = n_form + 1
+                        st.rerun()
                     else: st.error(msg)
                 else: 
                     st.error("Datos incompletos")
